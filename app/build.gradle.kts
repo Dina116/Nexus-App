@@ -40,7 +40,13 @@ android {
         compose = true
     }
     packagingOptions {
-        exclude ("META-INF/native-image/org.mongodb/bson/native-image.properties")
+        resources {
+            excludes += "META-INF/NOTICE.md"
+            excludes += "META-INF/LICENSE.md"
+            excludes += "META-INF/LICENSE-notice.md"
+            excludes += "META-INF/native-image/org.mongodb/bson/native-image.properties"
+
+        }
     }
 }
 
@@ -59,7 +65,8 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.material3.android)
     implementation(libs.androidx.runtime.livedata)
-    implementation(libs.firebase.database.ktx)
+    implementation(libs.firebase.common.ktx)
+    implementation(libs.firebase.storage.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -83,7 +90,9 @@ dependencies {
     implementation("org.jitsi.react:jitsi-meet-sdk:+") {
         isTransitive = true
     }
-    implementation ("org.jitsi.react:jitsi-meet-sdk:10.3.0")
+    implementation ("org.jitsi.react:jitsi-meet-sdk:11.1.4")
+    implementation ("com.google.firebase:firebase-messaging")
+
 
     implementation ("com.squareup.retrofit2:retrofit:2.11.0")
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
@@ -118,6 +127,11 @@ dependencies {
 //    // Microsoft Identity Client
 
     implementation("com.microsoft.identity.client:msal:1.4.0")
+
+    implementation ("com.github.bumptech.glide:glide:4.16.0")
+
+    implementation ("com.sun.mail:android-mail:1.6.6")
+    implementation ("com.sun.mail:android-activation:1.6.6")
 
 
 

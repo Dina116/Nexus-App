@@ -1,6 +1,7 @@
 package com.training.graduation.screens.profile
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -34,9 +35,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -46,6 +47,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -55,20 +57,48 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import com.training.graduation.R
-import com.training.graduation.screens.notification.NotificationScreen
-
+import com.training.graduation.screens.Authentication.AuthViewModel
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import uploadImageToCloudinary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Profile(navController: NavController){
+fun Profile(navController: NavController) {
+    val authViewModel: AuthViewModel = viewModel()
+    val currentUser by authViewModel.currentUser.observeAsState()
+    val context = LocalContext.current
 
-    //add image from gallery
-    val imageUri = rememberSaveable { mutableStateOf("") }
+    var showSuccessDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        authViewModel.fetchCurrentUser()
+    }
+
+    val nameState = rememberSaveable { mutableStateOf("") }
+    val emailState = rememberSaveable { mutableStateOf("") }
+    val passwordState = rememberSaveable { mutableStateOf("") }
+    var isUploading by remember { mutableStateOf(false) }
+    val imageUri = rememberSaveable { mutableStateOf(currentUser?.imageUrl ?: "") }
+
+
+    LaunchedEffect(currentUser) {
+        nameState.value = currentUser?.name ?: ""
+        emailState.value = currentUser?.email ?: ""
+        passwordState.value = currentUser?.password ?: ""
+        imageUri.value = currentUser?.imageUrl ?: ""
+
+    }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -77,16 +107,9 @@ fun Profile(navController: NavController){
             imageUri.value = it.toString()
         }
     }
+    val painter = rememberAsyncImagePainter(imageUri.value.ifEmpty { R.drawable.default_avatar_profile })
 
-    val painter = rememberAsyncImagePainter(
-        imageUri.value.ifEmpty { R.drawable.image11 }
-    )
-
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         BackgroundContent(navController)
 
         Card(
@@ -95,48 +118,73 @@ fun Profile(navController: NavController){
                 .fillMaxHeight()
                 .padding(top = 150.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 5.dp),
-            shape = RoundedCornerShape(
-                topStart = 50.dp,
-                topEnd = 50.dp
-            ),
+            shape = RoundedCornerShape(topStart = 50.dp, topEnd = 50.dp),
             colors = CardDefaults.cardColors(Color.White)
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Spacer(modifier = Modifier.height(60.dp))
-                EditPhoto(modifier =Modifier.padding(bottom = 20.dp),launcher)
+                EditPhoto(modifier = Modifier.padding(bottom = 20.dp), launcher)
 
                 OutlinedTextField(
-                    value = "",
-                    onValueChange = {},
+                    value = nameState.value,
+                    onValueChange = { nameState.value = it },
                     shape = RoundedCornerShape(25.dp),
                     label = { Text(stringResource(R.string.username)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(25.dp)
+                    modifier = Modifier.fillMaxWidth().padding(25.dp)
                 )
+
                 OutlinedTextField(
-                    value = "",
-                    onValueChange = {},
+                    value = emailState.value,
+                    onValueChange = { emailState.value = it },
                     shape = RoundedCornerShape(25.dp),
                     label = { Text(stringResource(R.string.Email)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 25.dp, start = 25.dp, end = 25.dp)
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 25.dp, vertical = 10.dp)
                 )
+
                 OutlinedTextField(
-                    value = "",
-                    onValueChange = {},
+                    value = passwordState.value,
+                    onValueChange = { passwordState.value = it },
                     shape = RoundedCornerShape(25.dp),
                     label = { Text(stringResource(R.string.Password)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 25.dp, start = 25.dp, end = 25.dp)
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 25.dp, vertical = 10.dp)
                 )
 
                 Button(
                     onClick = {
+                        isUploading = true
+                        if (imageUri.value.startsWith("content://")) {
+                            uploadImageToCloudinary(context, Uri.parse(imageUri.value),
+                                onSuccess = { imageUrl ->
+                                    val updatedUser = currentUser?.copy(
+                                        name = nameState.value,
+                                        email = emailState.value,
+                                        password = passwordState.value,
+                                        imageUrl = imageUrl
+                                    )
+                                    updatedUser?.let {
+                                        authViewModel.updateUser(it)
+                                        showSuccessDialog = true
+                                        isUploading = false
+                                    }
+                                },
+                                onFailure = {
+                                    Toast.makeText(context, "Image upload failed", Toast.LENGTH_SHORT).show()
+                                    isUploading = false
+                                }
+                            )
+                        } else {
+                            val updatedUser = currentUser?.copy(
+                                name = nameState.value,
+                                email = emailState.value,
+                                password = passwordState.value,
+                                imageUrl = imageUri.value
+                            )
+                            updatedUser?.let {
+                                authViewModel.updateUser(it)
+                                showSuccessDialog = true
+                                isUploading = false
+                            }
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -145,25 +193,16 @@ fun Profile(navController: NavController){
                         .background(
                             brush = Brush.linearGradient(
                                 colors = listOf(Color(0xFF000000), Color(0xFF3533CD)),
-                                start = Offset(
-                                    0f,
-                                    0f
-                                ),
-                                end = Offset(
-                                    Float.POSITIVE_INFINITY,
-                                    Float.POSITIVE_INFINITY
-                                )
+                                start = Offset(0f, 0f),
+                                end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
                             ),
                             shape = RoundedCornerShape(30.dp)
                         ),
-
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Transparent,
                         contentColor = Color.White
-
-                    ),
-
-                    ) {
+                    )
+                ) {
                     Text(
                         text = "Edit",
                         color = Color.White,
@@ -171,23 +210,37 @@ fun Profile(navController: NavController){
                         fontSize = 17.sp
                     )
                 }
+                if (isUploading) {
+                    CircularProgressIndicator(modifier = Modifier.padding(top = 16.dp))
+                }
+
             }
         }
 
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                //يحرك الصورة عموديًا بمقدار 100dp، مما يجعل جزءًا من الصورة يدخل داخل البطاقة.
-                //القيمة السالبة تحركها للأعلى، والقيمة الموجبة تحركها للأسفل.
                 .offset(y = 100.dp)
-                .zIndex(1f) // للتأكد من أنها تظهر فوق الـ Card
+                .zIndex(1f)
         ) {
             ProfileImage(painter)
         }
     }
 
-
+    if (showSuccessDialog) {
+        AlertDialog(
+            onDismissRequest = { showSuccessDialog = false },
+            title = { Text("Profile Updated") },
+            text = { Text("Your profile has been updated successfully.") },
+            confirmButton = {
+                Button(onClick = { showSuccessDialog = false }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
 }
+
 
 @Composable
 fun ProfileImage(painter: AsyncImagePainter) {

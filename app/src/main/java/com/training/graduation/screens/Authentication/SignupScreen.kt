@@ -1,4 +1,4 @@
-package com.training.graduation.screens.Authentication
+
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
@@ -26,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,11 +44,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.google.android.gms.tasks.OnFailureListener
-import com.google.android.gms.tasks.OnSuccessListener
+import coil.compose.rememberAsyncImagePainter
 import com.training.graduation.R
-import com.training.graduation.db.firebase.addUserToFirestore
-import com.training.graduation.db.model.User
+import com.training.graduation.screens.Authentication.AuthState
+import com.training.graduation.screens.Authentication.AuthViewModel
 
 
 @Preview(showBackground = true, showSystemUi = true)
@@ -57,7 +58,7 @@ fun SignupScreenPreview(){
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignupScreen(modifier: Modifier, navController: NavController,authViewModel: AuthViewModel, innerpadding: PaddingValues){
+fun SignupScreen(modifier: Modifier, navController: NavController, authViewModel: AuthViewModel, innerpadding: PaddingValues){
 
     var selectedRole by remember { mutableStateOf("User") }
     var userName by remember { mutableStateOf("") }
@@ -75,15 +76,25 @@ fun SignupScreen(modifier: Modifier, navController: NavController,authViewModel:
 
     LaunchedEffect(authState.value) {
         when (authState.value) {
-            is AuthState.Authenticated -> navController.navigate("homescreen")
+            is AuthState.Authenticated -> {
+                Toast.makeText(
+                    context,
+                    "Register Successfully",
+                    Toast.LENGTH_SHORT
+                ).show()
+                navController.navigate("homescreen")
+            }
+
             is AuthState.Error -> Toast.makeText(
                 context,
-                (authState.value as AuthState.Error).message, Toast.LENGTH_SHORT
+                (authState.value as AuthState.Error).message,
+                Toast.LENGTH_SHORT
             ).show()
 
             else -> Unit
         }
     }
+
 
 
     Column(
@@ -329,46 +340,16 @@ fun SignupScreen(modifier: Modifier, navController: NavController,authViewModel:
                     Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
                 }
 
+                val defaultImageUrl="https://res.cloudinary.com/daclkwzzc/image/upload/v1744581440/default/default-avatar-profile.jpg"
                 if (isValid) {
-
-                    authViewModel.signup(email, password)
-
-
-//                    if(selectedRole=="User"){
-//
-//                        val newUser = User(
-//                            name = userName,
-//                            email = email,
-//                            password = password,
-//                            host = false
-//                        )
-//                        addUserToFirestore(newUser, onSuccessListener = {
-//                            Toast.makeText(context, " Register successfully", Toast.LENGTH_SHORT).show()
-//                            navController.navigate("homescreen")
-//
-//                        }, onFailureListener = {
-//                            Toast.makeText(context, " Register failed", Toast.LENGTH_SHORT).show()
-//                        })
-//
-//                    }
-//                    else if(selectedRole=="Foundation"){
-//
-//                        val newFoundation = Foundation(
-//                            name = userName,
-//                            email = email,
-//                            password = password,
-//                        )
-//
-//                        addFoundationToFirestore(newFoundation, onSuccessListener =  {
-//                                Toast.makeText(context, "Register successfully", Toast.LENGTH_SHORT).show()
-//                                navController.navigate("homescreen")
-//                                }, onFailureListener =  {
-//                                    Toast.makeText(context, "Register failed", Toast.LENGTH_SHORT).show()
-//                                }
-//
-//                        )
-//                    }
-                }
+                     authViewModel.signup(
+                            email = email,
+                            password = password,
+                            userName = userName,
+                            selectedRole = selectedRole,
+                            defaultImageUrl = defaultImageUrl
+                        )
+                    }
             },
             enabled = authState.value != AuthState.Loading,
 
@@ -406,10 +387,18 @@ fun SignupScreen(modifier: Modifier, navController: NavController,authViewModel:
             )
 
         }
+        if (authState.value == AuthState.Loading) {
+            Spacer(modifier = Modifier.height(16.dp))
+            CircularProgressIndicator(
+                color = Color(0xFF3533CD),
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+        }
 
 
     }
 }
+
 
 
 

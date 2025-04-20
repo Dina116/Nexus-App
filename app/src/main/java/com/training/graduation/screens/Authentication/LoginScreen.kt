@@ -41,13 +41,26 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController,auth
     val authState = authViewModel.authState.observeAsState()
 
     LaunchedEffect(authState.value) {
-        when(authState.value){
-            is AuthState.Authenticated -> navController.navigate("homescreen")
-            is AuthState.Error -> Toast.makeText(context,
-                (authState.value as AuthState.Error).message, Toast.LENGTH_SHORT).show()
+        when (authState.value) {
+            is AuthState.Authenticated -> {
+                Toast.makeText(
+                    context,
+                    "Login successful",
+                    Toast.LENGTH_SHORT
+                ).show()
+                navController.navigate("homescreen")
+            }
+
+            is AuthState.Error -> Toast.makeText(
+                context,
+                (authState.value as AuthState.Error).message,
+                Toast.LENGTH_SHORT
+            ).show()
+
             else -> Unit
         }
     }
+
 
 
     Column(
@@ -80,8 +93,18 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController,auth
                 emailError = it.isBlank()
             },
             isError = emailError,
-            supportingText = { if (emailError) Text(stringResource(R.string.please_enter_email), color = Color.Red) },
-            leadingIcon = { Icon(ImageVector.vectorResource(R.drawable.ic_email), contentDescription = null) },
+            supportingText = {
+                if (emailError) Text(
+                    stringResource(R.string.please_enter_email),
+                    color = Color.Red
+                )
+            },
+            leadingIcon = {
+                Icon(
+                    ImageVector.vectorResource(R.drawable.ic_email),
+                    contentDescription = null
+                )
+            },
             shape = RoundedCornerShape(25.dp),
             modifier = Modifier.fillMaxWidth().padding(horizontal = 30.dp)
         )
@@ -95,8 +118,18 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController,auth
                 passwordError = it.isBlank()
             },
             isError = passwordError,
-            supportingText = { if (passwordError) Text(stringResource(R.string.please_enter_password), color = Color.Red) },
-            leadingIcon = { Icon(ImageVector.vectorResource(R.drawable.ic_lock), contentDescription = null) },
+            supportingText = {
+                if (passwordError) Text(
+                    stringResource(R.string.please_enter_password),
+                    color = Color.Red
+                )
+            },
+            leadingIcon = {
+                Icon(
+                    ImageVector.vectorResource(R.drawable.ic_lock),
+                    contentDescription = null
+                )
+            },
             shape = RoundedCornerShape(25.dp),
             modifier = Modifier.fillMaxWidth().padding(horizontal = 30.dp)
         )
@@ -108,10 +141,7 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController,auth
                 passwordError = password.isBlank()
                 if (isValid) {
 
-                    authViewModel.login(email,password)
-
-                    Toast.makeText(context, " Login successfully", Toast.LENGTH_SHORT).show()
-                    navController.navigate("homescreen")
+                    authViewModel.login(email, password)
 
                 }
             },
@@ -128,10 +158,26 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController,auth
                     ),
                     shape = RoundedCornerShape(30.dp)
                 ),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White)
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent,
+                contentColor = Color.White
+            )
         ) {
-            Text(text = "Login", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+            Text(
+                text = "Login",
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 17.sp
+            )
         }
+
+        if (authState.value == AuthState.Loading) {
+            CircularProgressIndicator(
+                color = Color(0xFF3533CD),
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+        }
+
         Spacer(modifier = Modifier.height(20.dp))
         Text(
             text = stringResource(R.string.forgot_password),
@@ -159,8 +205,6 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController,auth
         )
     }
 }
-
-
 
 
 @Preview(showBackground = true, showSystemUi = true)

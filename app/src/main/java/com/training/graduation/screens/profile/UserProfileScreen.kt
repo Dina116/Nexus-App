@@ -1,6 +1,10 @@
 package com.training.graduation.screens.profile
 
-import android.content.SharedPreferences
+
+import android.content.Intent
+import android.net.Uri
+import kotlinx.coroutines.delay
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,15 +29,20 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,11 +59,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.training.graduation.R
+import com.training.graduation.db.model.User
 import com.training.graduation.navigation.BottomNavigationBar
+import com.training.graduation.screens.Authentication.AuthState
+import com.training.graduation.screens.Authentication.AuthViewModel
 import com.training.graduation.screens.sharedprefrence.PreferenceManager
 import com.training.graduation.screens.sharedprefrence.UpdateLocale
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.time.delay
 import java.util.Locale
 
 @Composable
@@ -62,32 +79,38 @@ fun UserProfileScreen(navController: NavController,preferenceManager: Preference
     BottomNavigationBar(navController = navController)
 
     val layoutDirection = LocalLayoutDirection.current
+    val authViewModel: AuthViewModel = viewModel()
 
     val scrollState = rememberScrollState()
+    val currentUser by authViewModel.currentUser.observeAsState()
+
+    LaunchedEffect(Unit) {
+        authViewModel.fetchCurrentUser()
+        authViewModel.resetAuthState()
+
+    }
+
 
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(scrollState)
 
     )
         {
-        Row (
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 20.dp, top = 50.dp, bottom = 10.dp)
-            ,
-            verticalAlignment = Alignment.CenterVertically
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, top = 50.dp, bottom = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                ProfileImage1(imageUrl = currentUser?.imageUrl)
 
-        ) {
-            ProfileImage1()
-
-            // name from database
-            Text(
-                "Nada Mansour Samir",
-                modifier = Modifier.padding(25.dp),
-                fontSize = 17.sp,
-                color = Color.Black,
-                fontWeight = FontWeight.Bold
-            )
+                Text(
+                    text = currentUser?.name ?: "Loading...",
+                    modifier = Modifier.padding(25.dp),
+                    fontSize = 17.sp,
+                    color = Color.Black,
+                    fontWeight = FontWeight.Bold
+                )
         }
 
         EditProfile(Modifier.padding( start = 20.dp),navController)
@@ -96,7 +119,7 @@ fun UserProfileScreen(navController: NavController,preferenceManager: Preference
 
         ContactInfo(Modifier.padding(top = 30.dp, start = 20.dp))
 
-        Info(Modifier.padding(start =40.dp,top = 20.dp))
+        Info(Modifier.padding(start =40.dp,top = 20.dp),currentUser)
         Settings(Modifier.padding(start =20.dp,top = 20.dp))
 
         Language(Modifier.padding(top = 30.dp, start= 20.dp),layoutDirection,preferenceManager)
@@ -105,7 +128,11 @@ fun UserProfileScreen(navController: NavController,preferenceManager: Preference
 
         Privacy(Modifier.padding(top = 30.dp, start = 20.dp))
 
-        SignOut(Modifier.padding( start = 20.dp,top=30.dp),layoutDirection)
+        SignOut(
+            Modifier.padding(start = 20.dp, top = 30.dp), layoutDirection,
+            authViewModel = authViewModel,
+            navController = navController
+        )
 
     }
 
@@ -115,16 +142,14 @@ fun UserProfileScreen(navController: NavController,preferenceManager: Preference
 
 }
 
-
-
 @Composable
-fun ProfileImage1() {
-    val image = painterResource(id = R.drawable.image11)
+fun ProfileImage1(imageUrl: String?) {
+    val painter = rememberAsyncImagePainter(model = imageUrl ?: R.drawable.default_avatar_profile)
 
     Image(
-        painter = image,
+        painter = painter,
         contentScale = ContentScale.Crop,
-        contentDescription = "Circular Image",
+        contentDescription = "Profile Image",
         modifier = Modifier
             .size(70.dp)
             .clip(CircleShape)
@@ -175,14 +200,13 @@ fun ContactInfo(modifier: Modifier = Modifier){
 }
 
 @Composable
-fun Info(modifier: Modifier = Modifier){
+fun Info(modifier: Modifier = Modifier, user: User?) {
 
-    Row(
-        modifier = modifier,
-    ) {
+    val context= LocalContext.current
+    Row(modifier = modifier) {
         Icon(
             imageVector = Icons.Default.Email,
-            contentDescription = "Camera Icon",
+            contentDescription = "Email Icon",
             tint = Color.Gray,
             modifier = Modifier.size(30.dp)
         )
@@ -190,20 +214,25 @@ fun Info(modifier: Modifier = Modifier){
             Text(
                 stringResource(id = R.string.Email),
                 fontSize = 20.sp,
-                modifier = Modifier.padding(horizontal = 10.dp),
+                modifier = Modifier.padding(horizontal = 10.dp)
             )
-            //email from database
             Text(
-                "nada@gmail.com",
+                text = user?.email ?: "Loading...",
                 fontSize = 17.sp,
                 color = Color.Blue,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 10.dp),
+                modifier = Modifier
+                    .padding(horizontal = 10.dp)
+                    .clickable {
+                        user?.email?.let { email ->
+                            val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                data = Uri.parse("mailto:$email")
+                            }
+                            context.startActivity(intent)
+                        }
+                    }
             )
         }
-
-
-
     }
 }
 
@@ -467,14 +496,22 @@ fun AddAccount(modifier: Modifier, localDirection: LayoutDirection){
 }
 
 @Composable
-fun SignOut(modifier: Modifier, localDirection: LayoutDirection) {
+fun SignOut(
+    modifier: Modifier,
+    localDirection: LayoutDirection,
+    authViewModel: AuthViewModel,
+    navController: NavController
+) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var showDialog by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
+
     Row(modifier = modifier) {
-        Photo(R.drawable.ic_logout,Color.Red)
-        var showDialog by remember { mutableStateOf(false) }
+        Photo(R.drawable.ic_logout, Color.Red)
 
         Column(
-            modifier = Modifier
-                .padding(horizontal = 10.dp),
+            modifier = Modifier.padding(horizontal = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -482,14 +519,11 @@ fun SignOut(modifier: Modifier, localDirection: LayoutDirection) {
                 fontSize = 20.sp,
                 color = Color.Red,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .clickable { showDialog = true }
+                modifier = Modifier.clickable { showDialog = true }
             )
 
             if (showDialog) {
-
                 AlertDialog(
-
                     onDismissRequest = { showDialog = false },
                     title = {
                         Text(stringResource(id = R.string.SignOut))
@@ -498,16 +532,25 @@ fun SignOut(modifier: Modifier, localDirection: LayoutDirection) {
                         Text(stringResource(id = R.string.Are_you_sure_you_want_to_sign_out))
                     },
                     confirmButton = {
-
                         Button(
                             onClick = {
                                 showDialog = false
-                                // Handle sign-out logic here
+                                isLoading = true
+                                authViewModel.signout()
+                                Toast.makeText(context, "SignOut!!", Toast.LENGTH_SHORT).show()
+
+                                coroutineScope.launch {
+                                    delay(100)
+                                    isLoading = false
+                                    authViewModel.resetAuthState()
+                                    navController.navigate("loginscreen") {
+                                        popUpTo("homescreen") { inclusive = true }
+                                    }
+                                }
+
                             },
-                            modifier = Modifier.padding(end = if (localDirection == LayoutDirection.Rtl) 8.dp else 0.dp) ,
-                            colors = ButtonDefaults.buttonColors(
-                                colorResource(R.color.basic_color)
-                            )
+                            modifier = Modifier.padding(end = if (localDirection == LayoutDirection.Rtl) 8.dp else 0.dp),
+                            colors = ButtonDefaults.buttonColors(colorResource(R.color.basic_color))
                         ) {
                             Text(stringResource(id = R.string.Yes))
                         }
@@ -515,22 +558,25 @@ fun SignOut(modifier: Modifier, localDirection: LayoutDirection) {
                     dismissButton = {
                         Button(
                             onClick = { showDialog = false },
-                            modifier = Modifier.padding(end = if (localDirection == LayoutDirection.Rtl) 8.dp else 0.dp) ,
-                            colors = ButtonDefaults.buttonColors(
-                                colorResource(R.color.basic_color)
-                            )
+                            modifier = Modifier.padding(end = if (localDirection == LayoutDirection.Rtl) 8.dp else 0.dp),
+                            colors = ButtonDefaults.buttonColors(colorResource(R.color.basic_color))
                         ) {
                             Text(stringResource(id = R.string.No))
                         }
                     }
+                )
+            }
 
+            if (isLoading) {
+                Spacer(modifier = Modifier.height(16.dp))
+                CircularProgressIndicator(
+                    color = Color(0xFF3533CD),
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             }
         }
     }
-}
-
-
+    }
 
 @Composable
 fun Photo(id:Int,tint: Color = Color.Black){
@@ -544,6 +590,7 @@ fun Photo(id:Int,tint: Color = Color.Black){
 
     )
 }
+
 
 
 @Preview(showBackground = true, showSystemUi = true)

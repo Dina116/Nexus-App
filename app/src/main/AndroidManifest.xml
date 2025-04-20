@@ -12,7 +12,6 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
 
-
     <application
         android:usesCleartextTraffic="true"
         android:networkSecurityConfig="@xml/network_security_config"
@@ -38,6 +37,31 @@
                     android:scheme="msauth" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".screens.startmeeting.JitsiMeetStandaloneActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
+
+        <receiver
+            android:name=".following.MyJitsiBroadcastReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="org.jitsi.meet.CONFERENCE_JOINED" />
+                <action android:name="org.jitsi.meet.CONFERENCE_TERMINATED" />
+                <action android:name="org.jitsi.meet.PARTICIPANT_JOINED" />
+                <action android:name="org.jitsi.meet.PARTICIPANT_LEFT" />
+                <action android:name="org.jitsi.meet.CHAT_MESSAGE_RECEIVED" />
+            </intent-filter>
+        </receiver>
+
+        <service
+            android:name=".notification.Notification"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
 
 
 
