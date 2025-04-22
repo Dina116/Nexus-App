@@ -123,7 +123,6 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
 
 
-
 //    // Microsoft Identity Client
 
     implementation("com.microsoft.identity.client:msal:1.4.0")
@@ -133,29 +132,13 @@ dependencies {
     implementation ("com.sun.mail:android-mail:1.6.6")
     implementation ("com.sun.mail:android-activation:1.6.6")
 
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    implementation ("io.getstream:stream-chat-android-compose:6.14.0")
+    implementation ("io.getstream:stream-chat-android-client:6.14.0")
 
 
 }
+apply(plugin = "com.google.gms.google-services")

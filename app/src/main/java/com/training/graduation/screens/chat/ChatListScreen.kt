@@ -1,120 +1,121 @@
 package com.training.graduation.screens.chat
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import android.util.Log
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.training.graduation.R
+import com.google.firebase.auth.FirebaseAuth
+import com.training.graduation.chat_token.ChatTokenRequest
+import com.training.graduation.chat_token.ChatTokenResponse
+import com.training.graduation.chat_token.RetrofitClient
+import io.getstream.chat.android.client.ChatClient
+import io.getstream.chat.android.models.User
+//import io.getstream.chat.android.client.models.User
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.training.graduation.navigation.BottomNavigationBar
-import com.training.graduation.screens.mainscreen.SearchBar
+import io.getstream.chat.android.client.logger.ChatLogLevel
+import io.getstream.chat.android.compose.ui.channels.list.ChannelList
+import io.getstream.chat.android.compose.ui.theme.ChatTheme
+import io.getstream.chat.android.compose.viewmodel.channels.ChannelListViewModel
+import io.getstream.chat.android.compose.viewmodel.channels.ChannelViewModelFactory
+import io.getstream.chat.android.models.Channel
+import io.getstream.chat.android.models.FilterObject
+import io.getstream.chat.android.models.Filters
+import io.getstream.chat.android.models.querysort.QuerySortByField
+import io.getstream.chat.android.models.querysort.QuerySorter
 
-data class Chat(val userName: String, val lastMessage: String, val time: String)
 
 @Composable
 fun ChatListScreen(navController: NavController) {
-    val chats = remember {
-        mutableStateListOf(
-            Chat("Dina", "Hey, how are you?", "2:15 PM"),
-            Chat("Mariam", "Let's meet at 5!", "1:45 PM"),
-            Chat("Nada", "Did you finish the report?", "12:30 PM"),
-            Chat("Salma", "See you tomorrow!", "11:00 AM")
+    val context = LocalContext.current
+    val currentUser = FirebaseAuth.getInstance().currentUser
+    val uid = currentUser?.uid
+    val displayName = currentUser?.displayName ?: "Guest"
+
+    val chatClient = ChatClient.Builder("8udrnnksucjd",context)
+        .logLevel(ChatLogLevel.ALL)
+        .build()
+
+    //val chatClient = ChatClient.instance()
+
+//    val filter = Filters.and(
+//        Filters.eq("type", "messaging"),  // نوع القناة
+//        Filters.`in`("members", listOf(uid ?: ""))  // أعضاء القناة
+//    )
+
+    // إنشاء الـ ViewModel يدويًا
+    val viewModel: ChannelListViewModel = viewModel(
+        factory=ChannelViewModelFactory(
+            chatClient = chatClient,
         )
+    )
+
+    LaunchedEffect(uid) {
+
+
+        if (uid != null) {
+            val request = ChatTokenRequest(uid)
+
+            RetrofitClient.instance.getChatToken(request).enqueue(object :
+                Callback<ChatTokenResponse> {
+                override fun onResponse(
+                    call: Call<ChatTokenResponse>,
+                    response: Response<ChatTokenResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        val token = response.body()?.chat_token
+                        val user = User(
+                            id = uid ?: "",
+                            extraData = mutableMapOf(
+                                "name" to displayName
+                            )
+                        )
+
+
+                        ChatClient.instance().connectUser(user, token!!).enqueue { result ->
+                            if (result.isSuccess) {
+                                Log.d("Stream", "✅ Connected to chat!")
+                            } else {
+                                Log.e("Stream", "Failed: ${result.errorOrNull()?.message}")
+                            }
+                        }
+
+                    } else {
+                        Log.e("TokenAPI", "Error: ${response.code()}")
+                    }
+                }
+
+                override fun onFailure(call: Call<ChatTokenResponse>, t: Throwable) {
+                    Log.e("TokenAPI", "Network error: ${t.message}")
+                }
+            })
+        }
     }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Spacer(modifier = Modifier.height(30.dp))
-        Text(
-            text = "Chats",
-            style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold),
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        SearchBar(
-            onSearch = { query ->
-                println("Search query: $query")
+
+    ChatTheme {
+        ChannelList(
+            viewModel = viewModel,
+            onChannelClick = { channel ->
+                navController.navigate("messages/${channel.cid}")
             }
         )
-        Spacer(modifier = Modifier.height(20.dp))
-
-        LazyColumn(modifier = Modifier.weight(1f)) {
-            items(chats) { chat ->
-                ChatItem(chat = chat)
-            }
-        }
-
+        BottomNavigationBar(navController = navController)
     }
-    BottomNavigationBar(navController = navController)
-}
-@Composable
-fun ChatItem(chat: Chat){
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
-            .background(Color(0xFFF1F1F1), shape = RoundedCornerShape(20.dp))
-            .padding(16.dp)
-    ) {
-        Icon(
-                painter = painterResource(id = R.drawable.message_icon),
-                contentDescription = "Chat",
-                modifier = Modifier
-                    .wrapContentSize(Alignment.Center)
-                    .size(25.dp)
-            )
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = chat.userName,
-                style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = chat.lastMessage,
-                style = TextStyle(fontSize = 14.sp, color = Color.Gray)
-            )
-        }
-        Text(
-            text = chat.time,
-            style = TextStyle(fontSize = 12.sp, color = Color.Gray),
-            modifier = Modifier.align(Alignment.CenterVertically)
-        )
 
-    }
+
 }
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun ChatListScreenPreview() {
-    ChatListScreen(navController = rememberNavController())
-}
+
+
+
 
 

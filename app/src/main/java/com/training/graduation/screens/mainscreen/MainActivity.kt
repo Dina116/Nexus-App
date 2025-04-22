@@ -31,6 +31,8 @@ import com.training.graduation.screens.sharedprefrence.PreferenceManager
 import com.training.graduation.screens.sharedprefrence.UpdateLocale
 import com.training.graduation.screens.startmeeting.JitsiMeetCompose
 import com.training.graduation.ui.theme.GraduationTheme
+import io.getstream.chat.android.client.ChatClient
+import io.getstream.chat.android.client.logger.ChatLogLevel
 import org.jitsi.meet.sdk.JitsiMeetActivityDelegate
 
 
@@ -38,6 +40,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+
 
         JitsiMeetActivityDelegate.onHostResume(this)
 
