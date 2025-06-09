@@ -8,7 +8,8 @@ data class User (
     var password: String? = null,
     var host: Boolean = false,
     var hostORfoundation:String?=null,
-    var imageUrl: String? = null
+    var imageUrl: String? = null,
+    var playerId:String?=null
 ){
     companion object{
         const val CollectionNameUser = "users"

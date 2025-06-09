@@ -11,7 +11,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -75,11 +74,10 @@ import uploadImageToCloudinary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Profile(navController: NavController , innerpadding: PaddingValues) {
+fun Profile(navController: NavController) {
     val authViewModel: AuthViewModel = viewModel()
     val currentUser by authViewModel.currentUser.observeAsState()
     val context = LocalContext.current
-
 
     var showSuccessDialog by remember { mutableStateOf(false) }
 
@@ -327,10 +325,10 @@ fun BackgroundContent(navController: NavController) {
     }
 }
 
-//@Preview(showSystemUi = true)
-//@Composable
-//fun Edit(){
-//
-//    val navController = rememberNavController()
-//    Profile(navController = navController)
-//}
+@Preview(showSystemUi = true)
+@Composable
+fun Edit(){
+
+    val navController = rememberNavController()
+    Profile(navController = navController)
+}

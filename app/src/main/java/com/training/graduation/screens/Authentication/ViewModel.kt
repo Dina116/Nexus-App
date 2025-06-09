@@ -1,12 +1,16 @@
 package com.training.graduation.screens.Authentication
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.onesignal.OneSignal
 import com.training.graduation.db.model.User
+import scheduleNotificationFromApp
 
 class AuthViewModel : ViewModel() {
 
@@ -51,7 +55,8 @@ class AuthViewModel : ViewModel() {
         password: String,
         userName: String,
         selectedRole: String,
-        defaultImageUrl: String
+        defaultImageUrl: String,
+        playerId:String
     ) {
         _authState.value = AuthState.Loading
         auth.createUserWithEmailAndPassword(email, password)
@@ -65,7 +70,8 @@ class AuthViewModel : ViewModel() {
                         password = password,
                         host = selectedRole == "Foundation",
                         hostORfoundation = if (selectedRole == "Foundation") "foundation" else "user",
-                        imageUrl = defaultImageUrl
+                        imageUrl = defaultImageUrl,
+                        playerId = playerId
                     )
 
                     firestore.collection(User.CollectionNameUser)
@@ -103,6 +109,80 @@ class AuthViewModel : ViewModel() {
             }
     }
 
+    fun addMeetingToUserSchedule(
+        userId: String,
+        title: String,
+        description: String,
+        meetingTimeMillis: Long,
+        meetingLink: String
+    ) {
+        val db = FirebaseFirestore.getInstance()
+
+        val meeting = hashMapOf(
+            "title" to title,
+            "description" to description,
+            "meetingTime" to meetingTimeMillis,
+            "meetingLink" to meetingLink,
+            "notified" to false
+        )
+
+        db.collection("users")
+            .document(userId)
+            .collection("schedule")
+            .add(meeting)
+            .addOnSuccessListener {
+                db.collection("users")
+                    .document(userId)
+                    .get()
+                    .addOnSuccessListener { doc ->
+                        val user = doc.toObject(User::class.java)
+                        val playerId = user?.playerId
+                        if (!playerId.isNullOrEmpty()) {
+                            scheduleNotificationFromApp(title, meetingTimeMillis, playerId)
+                        } else {
+                            Log.e("OneSignal", "⚠️ playerId is null or empty")
+                        }
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("Firestore", "❌ Failed to get user data", e)
+                    }
+            }
+            .addOnFailureListener { e ->
+                Log.e("Firestore", "❌ Error adding meeting", e)
+            }
+    }
+
+    fun getUserScheduledMeetings(
+        userId: String,
+        onResult: (List<Map<String, Any>>) -> Unit,
+        onError: (Exception) -> Unit
+    ) {
+        val db = FirebaseFirestore.getInstance()
+
+        db.collection("users")
+            .document(userId)
+            .collection("schedule")
+            .get()
+            .addOnSuccessListener { result ->
+                val meetings = result.documents.mapNotNull { it.data }
+                onResult(meetings)
+            }
+            .addOnFailureListener { exception ->
+                onError(exception)
+            }
+    }
+    fun deleteMeeting(userId: String, meetingId: String, onSuccess: () -> Unit, onError: (Exception) -> Unit) {
+        FirebaseFirestore.getInstance()
+            .collection("users")
+            .document(userId)
+            .collection("schedule")
+            .document(meetingId)
+            .delete()
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { e -> onError(e) }
+    }
+
+
     fun signout() {
         auth.signOut()
         _authState.value = AuthState.Unauthenticated
@@ -112,6 +192,8 @@ class AuthViewModel : ViewModel() {
     fun resetAuthState() {
         _authState.value = AuthState.Unauthenticated
     }
+
+
 
 }
 

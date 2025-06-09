@@ -57,7 +57,8 @@ fun BottomNavigationBar(navController: NavController) {
             .height(95.dp) // الارتفاع الكلي لشريط التنقل
             .padding(horizontal = 20.dp, vertical =20.dp), // padding داخلي لشريط التنقل نفسه
         color = Color.White,
-        shadowElevation = 4.dp
+        shadowElevation = 4.dp,
+
     )
         {
             NavigationBar(
@@ -70,6 +71,7 @@ fun BottomNavigationBar(navController: NavController) {
                 ),
                 containerColor = Color.Transparent,
                 contentColor = Color.White,
+
 
                 ) {
                 val currentRoute = navController.currentDestination?.route

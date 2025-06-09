@@ -26,12 +26,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.android.gms.common.util.DataUtils
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.onesignal.OneSignal
 import com.training.graduation.R
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen( navController: NavController,authViewModel: AuthViewModel, innerPadding: PaddingValues) {
+fun LoginScreen(modifier: Modifier = Modifier, navController: NavController,authViewModel: AuthViewModel, innerPadding: PaddingValues) {
     var email by remember { mutableStateOf("") }
     var emailError by remember { mutableStateOf(false) }
     var password by remember { mutableStateOf("") }
@@ -41,6 +43,7 @@ fun LoginScreen( navController: NavController,authViewModel: AuthViewModel, inne
     val authState = authViewModel.authState.observeAsState()
 
     LaunchedEffect(authState.value) {
+
         when (authState.value) {
             is AuthState.Authenticated -> {
                 Toast.makeText(

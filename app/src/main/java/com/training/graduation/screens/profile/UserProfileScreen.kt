@@ -12,7 +12,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -76,8 +75,8 @@ import kotlinx.coroutines.time.delay
 import java.util.Locale
 
 @Composable
-fun UserProfileScreen(navController: NavController,preferenceManager: PreferenceManager, innerpadding: PaddingValues){
-    //BottomNavigationBar(navController = navController)
+fun UserProfileScreen(navController: NavController,preferenceManager: PreferenceManager){
+    BottomNavigationBar(navController = navController)
 
     val layoutDirection = LocalLayoutDirection.current
     val authViewModel: AuthViewModel = viewModel()
@@ -91,25 +90,27 @@ fun UserProfileScreen(navController: NavController,preferenceManager: Preference
 
     }
 
+
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(scrollState)
-    )
-        {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 20.dp, top = 50.dp, bottom = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                ProfileImage1(imageUrl = currentUser?.imageUrl)
 
-                Text(
-                    text = currentUser?.name ?: "Loading...",
-                    modifier = Modifier.padding(25.dp),
-                    fontSize = 17.sp,
-                    color = Color.Black,
-                    fontWeight = FontWeight.Bold
-                )
+    )
+    {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, top = 50.dp, bottom = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            ProfileImage1(imageUrl = currentUser?.imageUrl)
+
+            Text(
+                text = currentUser?.name ?: "Loading...",
+                modifier = Modifier.padding(25.dp),
+                fontSize = 17.sp,
+                color = Color.Black,
+                fontWeight = FontWeight.Bold
+            )
         }
 
         EditProfile(Modifier.padding( start = 20.dp),navController)
@@ -134,6 +135,11 @@ fun UserProfileScreen(navController: NavController,preferenceManager: Preference
         )
 
     }
+
+
+
+
+
 }
 
 @Composable
@@ -570,7 +576,7 @@ fun SignOut(
             }
         }
     }
-    }
+}
 
 @Composable
 fun Photo(id:Int,tint: Color = Color.Black){
@@ -587,10 +593,10 @@ fun Photo(id:Int,tint: Color = Color.Black){
 
 
 
-//@Preview(showBackground = true, showSystemUi = true)
-//@Composable
-//fun UserProfileScreenPreview() {
-//    UserProfileScreen(navController = NavController(LocalContext.current), preferenceManager=PreferenceManager(LocalContext.current) )
-//
-//
-//}
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun UserProfileScreenPreview() {
+    UserProfileScreen(navController = NavController(LocalContext.current), preferenceManager=PreferenceManager(LocalContext.current) )
+
+
+}

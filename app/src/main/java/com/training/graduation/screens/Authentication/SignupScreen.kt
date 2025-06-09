@@ -1,5 +1,6 @@
 
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -45,6 +46,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.onesignal.OneSignal
 import com.training.graduation.R
 import com.training.graduation.screens.Authentication.AuthState
 import com.training.graduation.screens.Authentication.AuthViewModel
@@ -53,12 +57,12 @@ import com.training.graduation.screens.Authentication.AuthViewModel
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun SignupScreenPreview(){
-    SignupScreen( navController= NavController(LocalContext.current), authViewModel = AuthViewModel(), innerpadding = PaddingValues())
+    SignupScreen(modifier = Modifier, navController= NavController(LocalContext.current), authViewModel = AuthViewModel(), innerpadding = PaddingValues())
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignupScreen(navController: NavController, authViewModel: AuthViewModel, innerpadding: PaddingValues){
+fun SignupScreen(modifier: Modifier, navController: NavController, authViewModel: AuthViewModel, innerpadding: PaddingValues){
 
     var selectedRole by remember { mutableStateOf("User") }
     var userName by remember { mutableStateOf("") }
@@ -340,16 +344,18 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel, inn
                     Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
                 }
 
+                val playerId = OneSignal.User.pushSubscription.id
                 val defaultImageUrl="https://res.cloudinary.com/daclkwzzc/image/upload/v1744581440/default/default-avatar-profile.jpg"
                 if (isValid) {
-                     authViewModel.signup(
-                            email = email,
-                            password = password,
-                            userName = userName,
-                            selectedRole = selectedRole,
-                            defaultImageUrl = defaultImageUrl
-                        )
-                    }
+                    authViewModel.signup(
+                        email = email,
+                        password = password,
+                        userName = userName,
+                        selectedRole = selectedRole,
+                        defaultImageUrl = defaultImageUrl,
+                        playerId = playerId
+                    )
+                }
             },
             enabled = authState.value != AuthState.Loading,
 
@@ -398,6 +404,8 @@ fun SignupScreen(navController: NavController, authViewModel: AuthViewModel, inn
 
     }
 }
+
+
 
 
 

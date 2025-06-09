@@ -1,21 +1,8 @@
 package com.training.graduation.screens.schedule
 
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -23,19 +10,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -51,46 +27,45 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.google.firebase.auth.FirebaseAuth
 import com.training.graduation.R
-import java.time.LocalDate
-import java.time.YearMonth
-import java.util.Locale
+import com.training.graduation.screens.Authentication.AuthViewModel
+import java.text.SimpleDateFormat
+import java.time.*
+import java.util.*
 
+data class Meeting(
+    val title: String = "",
+    val description: String = "",
+    val meetingTime: Long = 0L,
+    val meetingLink: String = ""
+)
 
-
-//@Composable
-//@Preview(showSystemUi = true)
-//
-//fun SchedulePreview(){
-//    val navController = NavController(LocalContext.current)
-//    ScheduleMeeting(navController)
-//}
-
+@Preview(showSystemUi = true)
+@Composable
+fun SchedulePreview() {
+    val navController = NavController(LocalContext.current)
+    ScheduleMeeting(navController)
+}
 
 @Composable
-fun ScheduleMeeting(navController:NavController, innerpadding: PaddingValues) {
+fun ScheduleMeeting(navController: NavController) {
     var isScheduleVisible by remember { mutableStateOf(false) }
+    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+    var reloadTrigger by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-
-        Column( modifier = Modifier.padding(top = 30.dp, start = 10.dp)) {
-
+        Column(modifier = Modifier.padding(top = 30.dp, start = 10.dp)) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(
-                    onClick = {
-                        navController.navigateUp()
-                    }
-                ) {
+                IconButton(onClick = { navController.navigateUp() }) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = "Back",
                         modifier = Modifier.padding(end = 8.dp)
                     )
-
                 }
                 Text(
                     stringResource(R.string.schedule_meetings),
@@ -99,82 +74,122 @@ fun ScheduleMeeting(navController:NavController, innerpadding: PaddingValues) {
             }
         }
 
-        CalendarScreen(onAddEventClick = { isScheduleVisible = true })
-
-            if (isScheduleVisible) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.5f))
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Schedule_Card(onClose = { isScheduleVisible = false })
-                }
-            }
-        }
-}
-
-@Composable
-fun CalendarScreen(onAddEventClick: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color(0xFF000000).copy(alpha = 0.7f),
-                        Color(0xFF0D47A1)
-                    )
-                )
-            )
-    ) {
-        // Header Section
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            // You can add some header content here
-        }
-        Spacer(modifier = Modifier.padding(30.dp))
-            CalendarView()  // Add your calendar view here if needed
-
-        // Today's Events
-        Text(
-            text = stringResource(R.string.meetings_scheduled),
-            modifier = Modifier.padding(16.dp),
-            style = TextStyle(color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+        CalendarScreen(
+            selectedDate = selectedDate,
+            onDateChange = { selectedDate = it },
+            onAddEventClick = { isScheduleVisible = true },
+            onForceReload = { reloadTrigger = !reloadTrigger },
+            reloadKey = reloadTrigger
         )
-        LazyColumn(
-            modifier = Modifier.padding(horizontal = 16.dp)
-        ) {
-            items(listOf("Meeting about KRR", "Team Meeting", "Project Discussion")) { meeting ->
-                MeetingCard(meetingName = meeting, description = "Description for $meeting")
-            }
-        }
 
-        // Floating Action Button
-        Box(
-            contentAlignment = Alignment.BottomEnd,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            FloatingActionButton(
-                onClick = onAddEventClick,
-                containerColor = colorResource(R.color.orange).copy(alpha = 0.85f),
-                contentColor = Color(0xFFFFFFFF),
-                modifier = Modifier.padding(10.dp)
+        if (isScheduleVisible) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Event")
+                Schedule_Card(onClose = {
+                    isScheduleVisible = false
+                    reloadTrigger = !reloadTrigger
+                })
             }
         }
     }
 }
 
 @Composable
-fun MeetingCard(meetingName: String, description: String) {
+fun CalendarScreen(
+    selectedDate: LocalDate,
+    onDateChange: (LocalDate) -> Unit,
+    onAddEventClick: () -> Unit,
+    onForceReload: () -> Unit,
+    reloadKey: Boolean
+) {
+    val viewModel = remember { AuthViewModel() }
+    val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+    var meetings by remember { mutableStateOf<List<Meeting>>(emptyList()) }
+
+    LaunchedEffect(reloadKey) {
+        viewModel.getUserScheduledMeetings(
+            userId = userId,
+            onResult = { fetched ->
+                meetings = fetched.map {
+                    Meeting(
+                        title = it["title"].toString(),
+                        description = it["description"].toString(),
+                        meetingTime = (it["meetingTime"] as? Long) ?: 0L,
+                        meetingLink = it["meetingLink"].toString()
+                    )
+                }
+            },
+            onError = { e -> println("❌ Error fetching meetings: ${e.message}") }
+        )
+    }
+
+    val filteredMeetings = meetings.filter {
+        val meetingDate = Instant.ofEpochMilli(it.meetingTime)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate()
+        meetingDate == selectedDate
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(Color(0xFF000000).copy(alpha = 0.7f), Color(0xFF0D47A1))
+                )
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 80.dp) // مساحة للزرار
+        ) {
+            Spacer(modifier = Modifier.padding(30.dp))
+            CalendarView(selectedDate = selectedDate, onDateSelected = onDateChange)
+
+            Text(
+                text = stringResource(R.string.meetings_scheduled),
+                modifier = Modifier.padding(16.dp),
+                style = TextStyle(color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+            )
+
+            LazyColumn(modifier = Modifier.padding(horizontal = 16.dp)) {
+                items(filteredMeetings) { meeting ->
+                    MeetingCard(
+                        meetingName = meeting.title,
+                        description = meeting.description,
+                        time = meeting.meetingTime
+                    )
+                }
+            }
+        }
+
+        FloatingActionButton(
+            onClick = onAddEventClick,
+            containerColor = colorResource(R.color.orange).copy(alpha = 0.85f),
+            contentColor = Color.White,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add Event")
+        }
+    }
+}
+
+@Composable
+fun MeetingCard(meetingName: String, description: String, time: Long) {
+    val formattedTime = remember(time) {
+        val date = Date(time)
+        val format = SimpleDateFormat("hh:mm a", Locale.getDefault())
+        format.format(date)
+    }
+
     Card(
         modifier = Modifier
             .padding(vertical = 8.dp)
@@ -195,9 +210,8 @@ fun MeetingCard(meetingName: String, description: String) {
                     style = TextStyle(color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp)
                 )
                 Spacer(modifier = Modifier.width(15.dp))
-
                 Text(
-                    text = "3:00 PM",
+                    text = formattedTime,
                     style = TextStyle(color = Color.White.copy(alpha = 0.5f), fontSize = 14.sp)
                 )
             }
@@ -206,17 +220,16 @@ fun MeetingCard(meetingName: String, description: String) {
 }
 
 @Composable
-fun CalendarView() {
-    var selectedDate by remember { mutableStateOf(LocalDate.now()) } // اليوم المحدد
-    var currentMonth by remember { mutableStateOf(YearMonth.now()) } // الشهر الحالي
+fun CalendarView(
+    selectedDate: LocalDate,
+    onDateSelected: (LocalDate) -> Unit
+) {
+    var currentMonth by remember { mutableStateOf(YearMonth.now()) }
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // الجزء العلوي (الشهر وأزرار التنقل)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -224,62 +237,31 @@ fun CalendarView() {
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_back),
-                contentDescription = "الشهر السابق",
+                contentDescription = "Previous Month",
                 tint = Color.White,
-                modifier = Modifier.clickable {
-                    currentMonth = currentMonth.minusMonths(1) // الانتقال للشهر السابق
-                }
+                modifier = Modifier.clickable { currentMonth = currentMonth.minusMonths(1) }
             )
             Text(
                 text = "${currentMonth.month.getDisplayName(java.time.format.TextStyle.FULL, Locale.getDefault())} ${currentMonth.year}",
-                style = MaterialTheme.typography.titleLarge, // عرض اسم الشهر والسنة
+                style = MaterialTheme.typography.titleLarge,
                 textAlign = TextAlign.Center,
                 color = Color.White
             )
             Icon(
                 painter = painterResource(id = R.drawable.ic_next),
-                contentDescription = "الشهر التالي",
+                contentDescription = "Next Month",
                 tint = Color.White,
-                modifier = Modifier.clickable {
-                    currentMonth = currentMonth.plusMonths(1) // الانتقال للشهر التالي
-                }
+                modifier = Modifier.clickable { currentMonth = currentMonth.plusMonths(1) }
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // أيام الأسبوع
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            listOf(stringResource(R.string.Sun),
-                stringResource(R.string.Mon),
-                stringResource(R.string.Tue),
-                stringResource(R.string.Wed),
-                stringResource(R.string.Thu),
-                stringResource(R.string.Fri),
-                stringResource(R.string.Sat)
-            ).forEach { day ->
-//                Text(
-//                    text = (day),
-//                    style = TextStyle(color = Color.White),
-//                    style = MaterialTheme.typography.bodyMedium,
-//                    textAlign = TextAlign.Center,
-//                    modifier = Modifier.weight(1f)
-//                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // عرض الأيام داخل شبكة
         val daysInMonth = (1..currentMonth.lengthOfMonth()).toList()
         val firstDayOfWeek = LocalDate.of(currentMonth.year, currentMonth.month, 1).dayOfWeek.value % 7
-
         val daysGrid = mutableListOf<String>()
-        repeat(firstDayOfWeek) { daysGrid.add("") } // إضافة مسافات فارغة لأيام الأسبوع
-        daysGrid.addAll(daysInMonth.map { it.toString() }) // إضافة الأيام
+        repeat(firstDayOfWeek) { daysGrid.add("") }
+        daysGrid.addAll(daysInMonth.map { it.toString() })
 
         Column {
             daysGrid.chunked(7).forEach { week ->
@@ -293,18 +275,13 @@ fun CalendarView() {
                                 .size(40.dp)
                                 .background(
                                     color = if (day.isNotEmpty() && day.toInt() == selectedDate.dayOfMonth &&
-                                        currentMonth == YearMonth.of(
-                                            selectedDate.year,
-                                            selectedDate.month
-                                        )
-                                    ) Color.White.copy(alpha = 0.15f) else Color.Transparent, // تلوين اليوم المحدد
+                                        currentMonth == YearMonth.of(selectedDate.year, selectedDate.month)
+                                    ) Color.White.copy(alpha = 0.15f) else Color.Transparent,
                                     shape = CircleShape
                                 )
                                 .clickable(enabled = day.isNotEmpty()) {
-                                    selectedDate = LocalDate.of(
-                                        currentMonth.year,
-                                        currentMonth.month,
-                                        day.toInt()
+                                    onDateSelected(
+                                        LocalDate.of(currentMonth.year, currentMonth.month, day.toInt())
                                     )
                                 },
                             contentAlignment = Alignment.Center
@@ -323,6 +300,3 @@ fun CalendarView() {
         }
     }
 }
-
-
-
