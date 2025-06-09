@@ -53,12 +53,12 @@ import com.training.graduation.screens.Authentication.AuthViewModel
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun SignupScreenPreview(){
-    SignupScreen(modifier = Modifier, navController= NavController(LocalContext.current), authViewModel = AuthViewModel(), innerpadding = PaddingValues())
+    SignupScreen( navController= NavController(LocalContext.current), authViewModel = AuthViewModel(), innerpadding = PaddingValues())
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SignupScreen(modifier: Modifier, navController: NavController, authViewModel: AuthViewModel, innerpadding: PaddingValues){
+fun SignupScreen(navController: NavController, authViewModel: AuthViewModel, innerpadding: PaddingValues){
 
     var selectedRole by remember { mutableStateOf("User") }
     var userName by remember { mutableStateOf("") }

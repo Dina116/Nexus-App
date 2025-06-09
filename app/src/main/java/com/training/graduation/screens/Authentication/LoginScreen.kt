@@ -31,7 +31,7 @@ import com.training.graduation.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(modifier: Modifier = Modifier, navController: NavController,authViewModel: AuthViewModel, innerPadding: PaddingValues) {
+fun LoginScreen( navController: NavController,authViewModel: AuthViewModel, innerPadding: PaddingValues) {
     var email by remember { mutableStateOf("") }
     var emailError by remember { mutableStateOf(false) }
     var password by remember { mutableStateOf("") }

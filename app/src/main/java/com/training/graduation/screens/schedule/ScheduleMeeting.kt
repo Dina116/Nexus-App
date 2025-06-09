@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -57,17 +58,17 @@ import java.util.Locale
 
 
 
+//@Composable
+//@Preview(showSystemUi = true)
+//
+//fun SchedulePreview(){
+//    val navController = NavController(LocalContext.current)
+//    ScheduleMeeting(navController)
+//}
+
+
 @Composable
-@Preview(showSystemUi = true)
-
-fun SchedulePreview(){
-    val navController = NavController(LocalContext.current)
-    ScheduleMeeting(navController)
-}
-
-
-@Composable
-fun ScheduleMeeting(navController:NavController) {
+fun ScheduleMeeting(navController:NavController, innerpadding: PaddingValues) {
     var isScheduleVisible by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {

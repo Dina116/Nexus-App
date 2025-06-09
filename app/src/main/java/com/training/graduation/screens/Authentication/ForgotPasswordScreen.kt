@@ -37,7 +37,7 @@ import androidx.navigation.NavController
 import com.training.graduation.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ForgotPasswordScreen(modifier: Modifier,navController: NavController, innerpadding: PaddingValues) {
+fun ForgotPasswordScreen(navController: NavController, innerpadding: PaddingValues) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -148,5 +148,5 @@ fun ForgotPasswordScreen(modifier: Modifier,navController: NavController, innerp
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun ForgotPasswordScreenPreview() {
-    ForgotPasswordScreen(modifier = Modifier,navController= NavController(LocalContext.current), innerpadding = PaddingValues())
+    ForgotPasswordScreen(navController= NavController(LocalContext.current), innerpadding = PaddingValues())
 }

@@ -7,11 +7,18 @@
         android:required="false" />
 
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-feature android:name="android.hardware.camera.any"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
 
     <application
         android:usesCleartextTraffic="true"
@@ -26,6 +33,21 @@
         android:theme="@style/Theme.Graduation"
         tools:targetApi="31">
 
+        <service
+            android:name=".screens.startmeeting.CameraService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="camera"/>
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
         <activity android:name="com.microsoft.identity.client.BrowserTabActivity"
             android:exported="true">
             <intent-filter>
@@ -39,22 +61,22 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".screens.startmeeting.JitsiMeetStandaloneActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+<!--        <activity-->
+<!--            android:name=".screens.startmeeting.JitsiMeetStandaloneActivity"-->
+<!--            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />-->
 
 
-        <receiver
-            android:name=".following.MyJitsiBroadcastReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="org.jitsi.meet.CONFERENCE_JOINED" />
-                <action android:name="org.jitsi.meet.CONFERENCE_TERMINATED" />
-                <action android:name="org.jitsi.meet.PARTICIPANT_JOINED" />
-                <action android:name="org.jitsi.meet.PARTICIPANT_LEFT" />
-                <action android:name="org.jitsi.meet.CHAT_MESSAGE_RECEIVED" />
-            </intent-filter>
-        </receiver>
+<!--        <receiver-->
+<!--            android:name=".following.MyJitsiBroadcastReceiver"-->
+<!--            android:exported="false">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="org.jitsi.meet.CONFERENCE_JOINED" />-->
+<!--                <action android:name="org.jitsi.meet.CONFERENCE_TERMINATED" />-->
+<!--                <action android:name="org.jitsi.meet.PARTICIPANT_JOINED" />-->
+<!--                <action android:name="org.jitsi.meet.PARTICIPANT_LEFT" />-->
+<!--                <action android:name="org.jitsi.meet.CHAT_MESSAGE_RECEIVED" />-->
+<!--            </intent-filter>-->
+<!--        </receiver>-->
 
         <service
             android:name=".notification.Notification"

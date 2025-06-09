@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun OnboardingScreen(
-    modifier: Modifier = Modifier,
+//    modifier: Modifier = Modifier,
     navController: NavController,
     innerpadding: PaddingValues
 ) {

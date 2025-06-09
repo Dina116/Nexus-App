@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.training.graduation"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.training.graduation"
@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.firebase.common.ktx)
     implementation(libs.firebase.storage.ktx)
+    //implementation(libs.androidx.navigationevent.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -118,6 +119,10 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.9.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
+    implementation ("com.google.firebase:firebase-messaging")
+    //implementation ("com.google.firebase:firebase-firestore-ktx")
+
+
 
     //fire store
     implementation("com.google.firebase:firebase-firestore")
@@ -134,10 +139,27 @@ dependencies {
 
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation ("com.squareup.okhttp3:okhttp:4.9.3")
+    implementation("com.squareup.retrofit2:converter-scalars:2.9.0")
 
 
-    implementation ("io.getstream:stream-chat-android-compose:6.14.0")
-    implementation ("io.getstream:stream-chat-android-client:6.14.0")
+
+    // CameraX
+    implementation ("androidx.camera:camera-core:1.1.0")
+    implementation("androidx.camera:camera-camera2:1.2.3")
+    implementation("androidx.camera:camera-lifecycle:1.2.3")
+    implementation("androidx.camera:camera-view:1.2.3")
+    implementation ("androidx.lifecycle:lifecycle-process:2.6.1")
+    implementation ("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
+
+
+// iText PDF
+    implementation ("com.itextpdf:itextpdf:5.5.13.3")
+
+    implementation ("org.tensorflow:tensorflow-lite:2.7.0")
+
+
+    implementation( "androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
 
 
 }

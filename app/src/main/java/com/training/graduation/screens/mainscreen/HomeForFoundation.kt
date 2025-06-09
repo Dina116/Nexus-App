@@ -46,7 +46,7 @@ import androidx.navigation.NavController
 import com.training.graduation.R
 import com.training.graduation.navigation.BottomNavigationBar
 import com.training.graduation.screens.Authentication.AuthViewModel
-import com.training.graduation.screens.startmeeting.QuestionsDialog
+//import com.training.graduation.screens.startmeeting.QuestionsDialog
 
 
 @Composable
@@ -91,21 +91,13 @@ fun HomeForFoundation(modifier: Modifier,navController:NavController,authViewMod
                     )
                 }
                 Spacer(modifier = Modifier.height(100.dp))
+
                 SearchBar(
                     onSearch = { query ->
                         println("Search query: $query")
                     },
                     modifier = Modifier.weight(1f)
                 )
-//                Icon(
-//                    painter = painterResource(id = R.drawable.ic_menu),
-//                    contentDescription = "Menu Icon",
-//                    modifier = Modifier
-//                        .size(30.dp)
-//                        .wrapContentSize(Alignment.TopEnd)
-//                        .clickable { },
-//                    tint = Color.Black
-//                )
             }
             Card(onClick = {
 
@@ -133,7 +125,7 @@ fun HomeForFoundation(modifier: Modifier,navController:NavController,authViewMod
                         Spacer(Modifier.padding(top = 5.dp))
                         Text(stringResource(R.string.start_meeting), fontWeight = FontWeight.Bold)
                         if (showDialog) {
-                            QuestionsDialog(onDismissRequest = { showDialog = false })
+                            //QuestionsDialog(onDismissRequest = { showDialog = false })
                         }
                     }
 
@@ -256,7 +248,7 @@ fun HomeForFoundation(modifier: Modifier,navController:NavController,authViewMod
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun HomeForFoundationPreview() {
-    HomeScreen(modifier = Modifier, navController = NavController(LocalContext.current), authViewModel = AuthViewModel(), innerpadding = PaddingValues())
+    HomeScreen( navController = NavController(LocalContext.current), authViewModel = AuthViewModel(), innerpadding = PaddingValues())
 
 }
 

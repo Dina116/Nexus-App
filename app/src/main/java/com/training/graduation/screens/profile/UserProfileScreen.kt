@@ -12,6 +12,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -75,8 +76,8 @@ import kotlinx.coroutines.time.delay
 import java.util.Locale
 
 @Composable
-fun UserProfileScreen(navController: NavController,preferenceManager: PreferenceManager){
-    BottomNavigationBar(navController = navController)
+fun UserProfileScreen(navController: NavController,preferenceManager: PreferenceManager, innerpadding: PaddingValues){
+    //BottomNavigationBar(navController = navController)
 
     val layoutDirection = LocalLayoutDirection.current
     val authViewModel: AuthViewModel = viewModel()
@@ -90,10 +91,8 @@ fun UserProfileScreen(navController: NavController,preferenceManager: Preference
 
     }
 
-
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(scrollState)
-
     )
         {
             Row(
@@ -135,11 +134,6 @@ fun UserProfileScreen(navController: NavController,preferenceManager: Preference
         )
 
     }
-
-
-
-
-
 }
 
 @Composable
@@ -593,10 +587,10 @@ fun Photo(id:Int,tint: Color = Color.Black){
 
 
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun UserProfileScreenPreview() {
-    UserProfileScreen(navController = NavController(LocalContext.current), preferenceManager=PreferenceManager(LocalContext.current) )
-
-
-}
+//@Preview(showBackground = true, showSystemUi = true)
+//@Composable
+//fun UserProfileScreenPreview() {
+//    UserProfileScreen(navController = NavController(LocalContext.current), preferenceManager=PreferenceManager(LocalContext.current) )
+//
+//
+//}

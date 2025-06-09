@@ -35,24 +35,31 @@ import com.training.graduation.R
 @Composable
 fun BottomNavigationBarPreview() {
     BottomNavigationBar(navController = NavController(LocalContext.current))
-
 }
-
-
 @Composable
 fun BottomNavigationBar(navController: NavController) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Surface(
-            shape = RoundedCornerShape(25.dp),
-            modifier = Modifier
-                .align(alignment = Alignment.BottomEnd)
-                .padding(20.dp)
-                .height(95.dp)
-                .padding(bottom = 20.dp)
-                .fillMaxWidth(),
-            color = Color.White,
-            shadowElevation = 4.dp
-        ) {
+
+//        Surface(
+//            shape = RoundedCornerShape(25.dp),
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(20.dp)
+//                .height(95.dp)
+//                .padding(bottom = 20.dp)
+//                .fillMaxWidth(),
+//            color = Color.White,
+//            shadowElevation = 4.dp
+//        )
+    Surface(
+        shape = RoundedCornerShape(25.dp),
+        modifier = Modifier
+            .fillMaxWidth() // يضمن أن يملأ العرض المتاح
+            .height(95.dp) // الارتفاع الكلي لشريط التنقل
+            .padding(horizontal = 20.dp, vertical =20.dp), // padding داخلي لشريط التنقل نفسه
+        color = Color.White,
+        shadowElevation = 4.dp
+    )
+        {
             NavigationBar(
                 modifier = Modifier.background(
                     brush = Brush.linearGradient(
@@ -89,36 +96,14 @@ fun BottomNavigationBar(navController: NavController) {
                     selected = currentRoute == "homescreen",
                     onClick = {
                         navController.navigate("homescreen") {
-                            popUpTo(0) { inclusive = true }
+//                            popUpTo(0) { inclusive = true }
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
                         }
                     }
                 )
-                NavigationBarItem(
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.message_icon),
-                            contentDescription = "Chat",
-                            tint = if (currentRoute == "chat") Color.White else Color.White,
-                            modifier = Modifier
-                                .wrapContentSize(Alignment.Center)
-                                .size(25.dp)
-                        )
-                    },
-                    label = {
-                        if (currentRoute == "chat") {
-                            Text(
-                                text = stringResource(R.string.chat),
-                                color = Color.White
-                            )
-                        }
-                    },
-                    selected = currentRoute == "chat",
-                    onClick = {
-                        navController.navigate("chat") {
-                            popUpTo(0) { inclusive = true }
-                        }
-                    }
-                )
+
                 NavigationBarItem(
                     icon = {
                         Icon(
@@ -141,7 +126,11 @@ fun BottomNavigationBar(navController: NavController) {
                     selected = currentRoute == "group",
                     onClick = {
                         navController.navigate("group") {
-                            popUpTo(0) { inclusive = true }
+//                            popUpTo(0) { inclusive = true }
+//                            navController.popBackStack()
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
                         }
                     }
                 )
@@ -168,7 +157,10 @@ fun BottomNavigationBar(navController: NavController) {
                     selected = currentRoute == "userprofile",
                     onClick = {
                         navController.navigate("userprofile") {
-                            popUpTo(0) { inclusive = true }
+//                            navController.popBackStack()
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
                         }
 
 
@@ -178,7 +170,35 @@ fun BottomNavigationBar(navController: NavController) {
         }
 
 
-    }
+
 }
 
+/*
+//                NavigationBarItem(
+//                    icon = {
+//                        Icon(
+//                            painter = painterResource(id = R.drawable.message_icon),
+//                            contentDescription = "Chat",
+//                            tint = if (currentRoute == "chat") Color.White else Color.White,
+//                            modifier = Modifier
+//                                .wrapContentSize(Alignment.Center)
+//                                .size(25.dp)
+//                        )
+//                    },
+//                    label = {
+//                        if (currentRoute == "chat") {
+//                            Text(
+//                                text = stringResource(R.string.chat),
+//                                color = Color.White
+//                            )
+//                        }
+//                    },
+//                    selected = currentRoute == "chat",
+//                    onClick = {
+//                        navController.navigate("chat") {
+//                            popUpTo(0) { inclusive = true }
+//                        }
+//                    }
+//                )
 
+ */

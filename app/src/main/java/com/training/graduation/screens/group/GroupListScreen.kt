@@ -1,120 +1,134 @@
 package com.training.graduation.screens.group
 
-import android.util.Log
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import com.google.firebase.auth.FirebaseAuth
-import com.training.graduation.chat_token.ChatTokenRequest
-import com.training.graduation.chat_token.ChatTokenResponse
-import com.training.graduation.chat_token.RetrofitClient
-import io.getstream.chat.android.client.ChatClient
-import io.getstream.chat.android.client.api.models.QueryChannelsRequest
-import io.getstream.chat.android.models.Channel
-import io.getstream.chat.android.models.Filters
-import io.getstream.chat.android.models.User
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GroupListScreen(navController: NavController) {
-    val currentUser = FirebaseAuth.getInstance().currentUser
-    val uid = currentUser?.uid
-    val displayName = currentUser?.displayName ?: "Guest"
+fun GroupListScreen(
+    viewModel: GroupListViewModel = viewModel(),
+    onGroupClick: (Group) -> Unit,
+    onCreateGroupClick: () -> Unit,
+    innerpadding: PaddingValues
 
-    val channels = remember { mutableStateListOf<Channel>() }
-
-    LaunchedEffect(uid) {
-        if (uid != null) {
-            val request = ChatTokenRequest(uid)
-
-            RetrofitClient.instance.getChatToken(request).enqueue(object :
-                Callback<ChatTokenResponse> {
-                override fun onResponse(
-                    call: Call<ChatTokenResponse>,
-                    response: Response<ChatTokenResponse>
-                ) {
-                    if (response.isSuccessful) {
-                        val token = response.body()?.chat_token
-                        val user = User(
-                            id = uid ?: "",
-                            extraData = mutableMapOf(
-                                "name" to displayName
-                            )
-                        )
-
-                        ChatClient.instance().connectUser(user, token!!).enqueue { result ->
-                            if (result.isSuccess) {
-                                Log.d("Stream", "Connected to chat!")
-                                val queryChannelsRequest = QueryChannelsRequest(
-                                    filter = Filters.and(
-                                        Filters.eq("type", "messaging")
-                                    ),
-                                    limit = 10
-                                )
-
-                                ChatClient.instance().queryChannels(queryChannelsRequest).enqueue { queryResult ->
-                                    if (queryResult.isSuccess) {
-                                        val channelsResponse = queryResult.getOrNull()
-                                        if (channelsResponse != null) {
-                                            channels.clear()
-                                            channels.addAll(channelsResponse)
-                                        }
-                                        Log.d("Stream", "Channels retrieved successfully")
-                                    } else {
-                                        Log.e("Stream", "Channels result is null")
-                                    }
-                                }
-                            } else {
-                                Log.e("Stream", "Failed: ${result.errorOrNull()?.message}")
-                            }
-                        }
-
-                    } else {
-                        Log.e("TokenAPI", "Error: ${response.code()}")
-                    }
-                }
-
-                override fun onFailure(call: Call<ChatTokenResponse>, t: Throwable) {
-                    Log.e("TokenAPI", "Network error: ${t.message}")
-                }
-            })
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    Scaffold(
+        topBar = {
+            TopAppBar(title = { Text("Chats", fontWeight = FontWeight.Bold, color = Color(0xFF3533CD)) })
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = onCreateGroupClick) {
+                Icon(Icons.Filled.Add, contentDescription = "Create New Group")
+            }
         }
-    }
-
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        if (channels.isEmpty()) {
-            Text(text = "Connecting to chat...", style = MaterialTheme.typography.bodyLarge)
-        } else {
-            LazyColumn(modifier = Modifier.padding(16.dp)) {
-                items(channels) { channel ->
-                    Text(
-                        text = channel.name ?: "No Name",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(8.dp)
-                    )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+        ) {
+            if (uiState.isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            } else if (uiState.error != null) {
+                Text(
+                    text = "Error: ${uiState.error}",
+                    modifier = Modifier.align(Alignment.Center).padding(16.dp),
+                    color = MaterialTheme.colorScheme.error
+                )
+            } else if (uiState.groups.isEmpty()) {
+                Text(
+                    text = "No chats yet. Create one!",
+                    modifier = Modifier.align(Alignment.Center).padding(16.dp)
+                )
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(uiState.groups, key = { it.groupId }) { group ->
+                        ChatItem(group = group, onClick = {clickedGroup ->
+                            onGroupClick(clickedGroup) })
+                        Divider()
+                    }
                 }
             }
         }
     }
 }
+@Composable
+fun ChatItem(
+    group: Group,
+    onClick: (Group) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable { onClick(group) },
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(Color.White.copy(alpha = 0.15f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = group.groupName,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = group.lastMessage ?: "No messages yet",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = formatTimestamp(group.lastMessageTimestamp),
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+fun formatTimestamp(date: Date?): String {
+    if (date == null) return ""
+    val now = System.currentTimeMillis()
+    val diff = now - date.time
 
+    return when {
+        diff < 60 * 1000 -> "Just now"
+        diff < 60 * 60 * 1000 -> "${diff / (60 * 1000)}m ago"
+        diff < 24 * 60 * 60 * 1000 -> SimpleDateFormat("h:mm a", Locale.getDefault()).format(date)
+        else -> SimpleDateFormat("MMM d", Locale.getDefault()).format(date)
+    }
+}
 

@@ -3,6 +3,7 @@ package com.training.graduation.screens.notification
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,7 +30,7 @@ import androidx.navigation.compose.rememberNavController
 import com.training.graduation.R
 
 @Composable
-fun NotificationScreen(navController:NavController) {
+fun NotificationScreen(navController:NavController , innerpadding: PaddingValues) {
 
 
     Column(
@@ -91,11 +92,11 @@ fun No_Notification(){
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun NotificationScreenPreview() {
-    val navController = rememberNavController()
-
-    NotificationScreen(navController = navController)
-}
+//@Preview(showBackground = true, showSystemUi = true)
+//@Composable
+//fun NotificationScreenPreview() {
+//    val navController = rememberNavController()
+//
+//    NotificationScreen(navController = navController)
+//}
 
