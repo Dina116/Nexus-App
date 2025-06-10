@@ -50,12 +50,9 @@ import com.training.graduation.screens.Authentication.AuthViewModel
 @Composable
 fun HomeScreen(modifier: Modifier,navController:NavController,authViewModel: AuthViewModel, innerpadding: PaddingValues) {
 
-
     var showDialog by remember { mutableStateOf(false) } // State to control dialog visibility
 
     val context = LocalContext.current
-
-
 
     Box(modifier = modifier
         .padding(innerpadding)
@@ -106,20 +103,21 @@ fun HomeScreen(modifier: Modifier,navController:NavController,authViewModel: Aut
 //                    tint = Color.Black
 //                )
             }
-            Card(onClick = {
+            Card(
+                onClick = {
 
-                navController.navigate("start_meeting")
+                    navController.navigate("start_meeting")
 
 
-
-            },modifier= Modifier
-                .fillMaxWidth()
-                .padding(start = 20.dp, end = 20.dp)
-                .height(120.dp),
+                }, modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, end = 20.dp)
+                    .height(120.dp),
                 shape = RoundedCornerShape(30.dp),
                 colors = CardDefaults.cardColors(Color.Blue.copy(alpha = 0.15f))
-            ){
-                Box( modifier = Modifier.fillMaxSize(),
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -145,10 +143,11 @@ fun HomeScreen(modifier: Modifier,navController:NavController,authViewModel: Aut
                     .fillMaxWidth()
                     .padding(start = 20.dp, end = 20.dp)
             ) {
-                Card(onClick = {
-                    navController.navigate("schedule")
+                Card(
+                    onClick = {
+                        navController.navigate("schedule")
 
-                },
+                    },
                     modifier = Modifier
                         .weight(1f)
                         .padding(end = 10.dp)
@@ -166,7 +165,7 @@ fun HomeScreen(modifier: Modifier,navController:NavController,authViewModel: Aut
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Column (horizontalAlignment = Alignment.CenterHorizontally){
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
                                 painter = painterResource(id = R.drawable.icon_schedule),
                                 contentDescription = "null",
@@ -178,9 +177,10 @@ fun HomeScreen(modifier: Modifier,navController:NavController,authViewModel: Aut
                         }
                     }
                 }
-                Card(onClick = {
-                    navController.navigate("upload_video_screen")
-                },
+                Card(
+                    onClick = {
+                        navController.navigate("upload_video_screen")
+                    },
                     modifier = Modifier
                         .weight(1f)
                         .padding(start = 10.dp)
@@ -193,7 +193,7 @@ fun HomeScreen(modifier: Modifier,navController:NavController,authViewModel: Aut
                         contentAlignment = Alignment.Center
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            val image = painterResource(id =R.drawable.ai_assest)
+                            val image = painterResource(id = R.drawable.ai_assest)
 
                             Image(
                                 painter = image,
@@ -203,22 +203,47 @@ fun HomeScreen(modifier: Modifier,navController:NavController,authViewModel: Aut
                             )
                             Spacer(Modifier.padding(top = 5.dp))
                             //Text("AI Asset", fontWeight = FontWeight.Bold)
-                            Text(stringResource(R.string.comming_soon), fontWeight = FontWeight.SemiBold)
+                            Text(
+                                stringResource(R.string.comming_soon),
+                                fontWeight = FontWeight.SemiBold
+                            )
                         }
                     }
                 }
 
             }
 
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Card(
+                onClick = {
+                    navController.navigate("question_form") // غيري الاسم حسب الشاشة
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, end = 20.dp)
+                    .height(120.dp),
+                shape = RoundedCornerShape(30.dp),
+                colors = CardDefaults.cardColors(Color(0xFFD1C4E9)) // بنفسجي فاتح
+            ) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.question), // حطي أيقونة مناسبة
+                            contentDescription = "Question Icon",
+                            modifier = Modifier.size(20.dp),
+                            tint = Color.Black
+                        )
+                        Spacer(Modifier.padding(top = 5.dp))
+                        Text("Question Form", fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
         }
-
-
-
     }
+
 }
-
-
-
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun HomeScreenPreview() {

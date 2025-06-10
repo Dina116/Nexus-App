@@ -1,0 +1,92 @@
+1. : What are the key challenges and considerations discussed in organizing the event for the youth, and how do the participants ensure its necessity and effectiveness? 
+2. What is the focus of this discussion? 
+3. What is an example of a group function? 
+4. :** How do the differences in using `COUNT *` versus `COUNT specific columns` impact the structure and information conveyed in the query results, particularly in terms of data inclusion and aggregation?
+ 
+5. What does the text discuss in relation to SQL queries? 
+6. How many values does group functions like 'COUNT' return per group? 
+7. Without 'GROUP BY', how many rows are returned? 
+8. The number of columns returned depends on what statement? 
+9. :** How does the discrepancy in the number of people in the 10th section (4 instead of 7) indicate potential issues with the methodology or cultural bias impacting the analysis?
+ 
+10. What are some of the key insights from COUNT, SUM, and AVG? 
+11. What does the text discuss when creating a query using SQL group functions and the "group by" clause? 
+12. :** How does the methodology of grouping and field utilization in the text influence the process of data organization and analysis, particularly in relation to the mentioned credits, flame, and knob mechanisms?
+ 
+13. What is the focus of the discussion around database query structuring? 
+14. What do the key points emphasize? 
+15. :** How does the text describe the process of grouping data, and what specific criteria are mentioned for applying group functions?
+ 
+16. The discussion revolves around the proper use of what? 
+17. What must be applied to the same columns selected in the SELECT statement to ensure accurate data grouping? 
+18. :** How does the text emphasize the necessity of grouping tasks or elements, and what implications does it suggest for not adhering to this approach?  
+ 
+19. The text discusses the structure of data grouping based on what? 
+20. What should be represented in a table or report? 
+21. :** What reasoning lies behind the varying gender distributions across the different groups, and what does this indicate about the purpose of the groupings?
+ 
+22. What field does the text discuss how to count commissions for different departments? 
+23. Who is trying to clarify how to structure the count? 
+24. : How do the commission numbers (10, 20, 30) relate to the departments, and what reasoning supports their distribution as described in the text? 
+25. How many sections are discussed in the text? 
+26. What does the speaker emphasize in the process of grouping and counting salaries? 
+27. :** How does the text explore the relationship between the concepts of duality and repetition, and what symbolic meaning might be inferred from the recurring numerical references to "عشرة" (ten) and "خمسة" (five)?
+ 
+28. The text highlights how the WHERE clause restricts rows before what? 
+29. : How does the text use numerical values and symbols to encode or represent specific concepts or messages, and what might be the purpose of this encoding method? 
+30. How many employees must be in each department? 
+31. The correct approach involves using what to group employees by department and then applying the HAVING clause to filter departments with a count of 2 or more employees? 
+32. :** How does the process of grouping and applying conditions in the context of the primary key contribute to the analysis and interpretation of data, particularly in scenarios where specific filters like the count exceeding a certain threshold are applied?
+ 
+33. What clauses are discussed in the text? 
+34. What is used for filtering before grouping and after grouping? 
+35. The original table remains unchanged because queries process data without altering what? 
+36. : What implications does the maintenance of group functions under specific conditions have on the overall structure and operations described in the text, and how do these conditions influence the persistence of these functions? 
+37. The text discusses the process of managing and filtering data related to employees in different sections focusing on conditions such as the number of employees being more than what threshold? 
+38. The process involves checking employee counts, applying specific functions and ensuring 
+39. :** What specific criteria and processes does the text describe for distributing employees into different sections, and how are these criteria applied to ensure fairness and efficiency in the organizational structure?
+ 
+40. What are the participants trying to clarify? 
+41. What do they discuss the practical application of these groups? 
+42. :** How does the text explore the themes of identity and searching, and what specific elements in the text support these themes?
+ 
+43. What does the text mention to perform calculations or aggregations? 
+44. The speaker emphasizes the importance of following a precise order and using what term to filter results? 
+45. :** What role do conditions play in determining the number of tasks or processes in the described system, and how do they relate to the numbers 2000 and 200?
+ 
+46. What does the text emphasize the use of? 
+47. What is the role of the HAVING clause for filtering? 
+48. : What is the purpose of using the HAVING clause after grouping in the context of data analysis, and how does it contribute to refining the results based on specific conditions? 
+49. What does the text focus on? 
+50. What is important to understand when dealing with multiple tables or complex conditions? 
+51. :** What implications arise from failing to meet the conditions necessary for aggregating functions, and how does this relate to the background functions discussed?
+ 
+52. What does the text discuss about SQL query structure? 
+53. Why is planning queries on paper important? 
+54. : What is the purpose of using GROUP BY and HAVING clauses in the context of the query structure discussed in the text, and how do these clauses contribute to the overall logic and security of the query? 
+55. There is a mention of technical difficulties with a microphone in what setting? 
+56. :** How does the department ensure that it does not overlook its responsibilities, and what mechanisms are in place to address potential negligence in its operations?
+ 
+57. What is a useful tool for retrieving unknown values needed for the main query? 
+58. What can subqueries return multiple values that can be used with operators like "IN"? 
+59. The discussion revolves around using what to retrieve specific data from a database? 
+60. :** What is the primary purpose of the queries mentioned in the text, and how do they relate to the retrieval and manipulation of employee data across different departments?
+ 
+61. What are subqueries in SQL used for? 
+62. How does the text structure WHERE conditions? 
+63. : How does the repetitive use of terms like 'لويس فيتون' (Louis Vuitton) and 'الجمله' (the phrase) contribute to the overall message or structure of the text? 
+64. What is used to identify the department number for X and then filter employees based on the average salary condition? 
+65. : How does the text describe the relationship between the use of subqueries and the grouping of data, and what specific conditions or operations are applied to achieve the desired results? 
+66. Why are joins only required when data from another table is needed? 
+67. What is the term for a subquery? 
+68. The speaker highlights that unnecessary joins can complicate what? 
+69. :** What underlying concern or frustration is expressed in the text regarding the necessity and requirements for joining or employment, given the repetition of phrases like "No need. To join." and the emphasis on the quality of a name?  
+ 
+70. What is one of the challenges of writing efficient SQL queries? 
+71. The author reflects on the importance of understanding table connections and what can lead to longer execution times? 
+72. :** Why is it crucial to ensure that the subquery in the provided SQL statement returns only a single value?
+ 
+73. What does the text emphasize in problem-solving? 
+74. What does writing down information aid in remembering and understanding? 
+75. The speaker invites questions and encourages what type of participation? 
+76. : How does the character in the text approach the task of expressing their feelings or needs, and what significance is placed on the response they receive? 

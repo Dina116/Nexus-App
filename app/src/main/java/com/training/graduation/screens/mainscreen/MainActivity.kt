@@ -48,6 +48,7 @@ import com.training.graduation.screens.schedule.ScheduleMeeting
 import com.training.graduation.screens.notification.NotificationScreen
 import com.training.graduation.screens.profile.Profile
 import com.training.graduation.screens.profile.UserProfileScreen
+import com.training.graduation.screens.questionform.QuestionFormScreen
 import com.training.graduation.screens.sharedprefrence.PreferenceManager
 import com.training.graduation.screens.sharedprefrence.UpdateLocale
 import com.training.graduation.screens.startmeeting.JitsiMeetCompose
@@ -271,6 +272,11 @@ fun AppNavigation(preferenceManager:PreferenceManager,authViewModel:AuthViewMode
             }
             composable("video_result_screen") {
                 VideoResultScreen()
+            }
+            composable(route = "question_form") {
+                QuestionFormScreen(navController)
+
+
             }
 
         }
