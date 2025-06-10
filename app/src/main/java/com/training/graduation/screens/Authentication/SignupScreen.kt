@@ -48,7 +48,6 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.onesignal.OneSignal
 import com.training.graduation.R
 import com.training.graduation.screens.Authentication.AuthState
 import com.training.graduation.screens.Authentication.AuthViewModel
@@ -344,7 +343,7 @@ fun SignupScreen(modifier: Modifier, navController: NavController, authViewModel
                     Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
                 }
 
-                val playerId = OneSignal.User.pushSubscription.id
+//                val playerId = OneSignal.User.pushSubscription.id
                 val defaultImageUrl="https://res.cloudinary.com/daclkwzzc/image/upload/v1744581440/default/default-avatar-profile.jpg"
                 if (isValid) {
                     authViewModel.signup(
@@ -353,7 +352,7 @@ fun SignupScreen(modifier: Modifier, navController: NavController, authViewModel
                         userName = userName,
                         selectedRole = selectedRole,
                         defaultImageUrl = defaultImageUrl,
-                        playerId = playerId
+//                        playerId = playerId
                     )
                 }
             },

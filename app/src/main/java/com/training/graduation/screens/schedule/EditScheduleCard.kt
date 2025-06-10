@@ -25,7 +25,6 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import com.training.graduation.R
 import com.training.graduation.screens.Authentication.AuthViewModel
-import scheduleNotificationFromApp
 import java.text.SimpleDateFormat
 import java.util.*
 

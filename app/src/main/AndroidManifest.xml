@@ -6,6 +6,8 @@
         android:name="android.hardware.camera"
         android:required="false" />
 
+
+
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -78,13 +80,13 @@
 <!--            </intent-filter>-->
 <!--        </receiver>-->
 
-        <service
-            android:name=".notification.Notification"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
+<!--        <service-->
+<!--            android:name=".notification.Notification"-->
+<!--            android:exported="false">-->
+<!--            <intent-filter>-->
+<!--                <action android:name="com.google.firebase.MESSAGING_EVENT" />-->
+<!--            </intent-filter>-->
+<!--        </service>-->
 
 
 

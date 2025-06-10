@@ -8,9 +8,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import com.onesignal.OneSignal
 import com.training.graduation.db.model.User
-import scheduleNotificationFromApp
+import com.training.graduation.onesignal.scheduleNotificationFromApp
 
 class AuthViewModel : ViewModel() {
 
@@ -56,7 +55,7 @@ class AuthViewModel : ViewModel() {
         userName: String,
         selectedRole: String,
         defaultImageUrl: String,
-        playerId:String
+//        playerId:String
     ) {
         _authState.value = AuthState.Loading
         auth.createUserWithEmailAndPassword(email, password)
@@ -71,7 +70,7 @@ class AuthViewModel : ViewModel() {
                         host = selectedRole == "Foundation",
                         hostORfoundation = if (selectedRole == "Foundation") "foundation" else "user",
                         imageUrl = defaultImageUrl,
-                        playerId = playerId
+//                        playerId = playerId
                     )
 
                     firestore.collection(User.CollectionNameUser)

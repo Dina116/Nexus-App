@@ -53,8 +53,11 @@ import com.training.graduation.screens.sharedprefrence.UpdateLocale
 import com.training.graduation.screens.startmeeting.JitsiMeetCompose
 import com.training.graduation.screens.startmeeting.PdfReportsScreen
 import com.training.graduation.ui.theme.GraduationTheme
+import com.training.graduation.uploadvideo.UploadVideoScreen
+import com.training.graduation.uploadvideo.VideoResultScreen
 import org.jitsi.meet.sdk.JitsiMeetActivityDelegate
-
+import java.net.URLDecoder
+import java.net.URLEncoder
 
 
 class MainActivity : ComponentActivity() {
@@ -128,13 +131,17 @@ fun AppNavigation(preferenceManager:PreferenceManager,authViewModel:AuthViewMode
                 OnboardingScreen (navController, innerpadding = paddingValues)
             }
             composable(route = "loginscreen") {
-                LoginScreen( navController,authViewModel,paddingValues)
+                LoginScreen( modifier = Modifier,navController,authViewModel,paddingValues)
             }
             composable(route = "signupscreen") {
-                SignupScreen(navController,authViewModel, innerpadding = paddingValues)
+                SignupScreen(modifier = Modifier,navController,authViewModel, innerpadding = paddingValues)
             }
             composable(route = "homescreen") {
-                HomeScreen(navController,authViewModel, innerpadding = paddingValues)
+                HomeScreen(
+                    Modifier,
+                    navController, innerpadding = paddingValues,
+                    authViewModel =authViewModel
+                )
             }
             composable(route = "forgotpassword") {
                 ForgotPasswordScreen(navController, innerpadding = paddingValues)
@@ -145,7 +152,7 @@ fun AppNavigation(preferenceManager:PreferenceManager,authViewModel:AuthViewMode
                     onGroupClick = { Group ->
                         val groupId = Group.groupId
                         val groupName = Group.groupName
-                        val encodedGroupName = java.net.URLEncoder.encode(groupName, "UTF-8")
+                        val encodedGroupName = URLEncoder.encode(groupName, "UTF-8")
                         navController.navigate("chat/$groupId/$encodedGroupName")
                     },
                     onCreateGroupClick = {
@@ -164,7 +171,7 @@ fun AppNavigation(preferenceManager:PreferenceManager,authViewModel:AuthViewMode
             ) { backStackEntry ->
                 val groupId = backStackEntry.arguments?.getString("groupId")
                 val encodedGroupName = backStackEntry.arguments?.getString("groupName")
-                val groupName = encodedGroupName?.let { java.net.URLDecoder.decode(it, "UTF-8") } ?: "Chat"
+                val groupName = encodedGroupName?.let { URLDecoder.decode(it, "UTF-8") } ?: "Chat"
                 val repository = ChatRepository()
                 val owner = LocalSavedStateRegistryOwner.current
                 val factory = GroupScreenViewModelFactory(repository, owner, backStackEntry.arguments)
@@ -192,7 +199,7 @@ fun AppNavigation(preferenceManager:PreferenceManager,authViewModel:AuthViewMode
 
             ) { detailsBackStackEntry ->
                 val encodedGroupName = detailsBackStackEntry.arguments?.getString("groupName")
-                val groupName = encodedGroupName?.let { java.net.URLDecoder.decode(it, "UTF-8") } ?: "Chat"
+                val groupName = encodedGroupName?.let { URLDecoder.decode(it, "UTF-8") } ?: "Chat"
                 val detailsGroupId = detailsBackStackEntry.arguments?.getString("groupId")
                 val detailsGroupName =groupName
                 val detailsRepository = ChatRepository()
@@ -236,28 +243,34 @@ fun AppNavigation(preferenceManager:PreferenceManager,authViewModel:AuthViewMode
                     onNavigateBack = { navController.popBackStack() },
                     onGroupCreated = { newGroupId, newGroupName  ->
                         navController.popBackStack()
-                        val encodedGroupName = java.net.URLEncoder.encode(newGroupName, "UTF-8")
+                        val encodedGroupName = URLEncoder.encode(newGroupName, "UTF-8")
                         navController.navigate("chat/$newGroupId/$encodedGroupName")
                     }
                 )
             }
             composable(route = "userprofile") {
-                UserProfileScreen(navController,preferenceManager =preferenceManager,innerpadding = paddingValues)
+                UserProfileScreen(navController,preferenceManager =preferenceManager)
             }
             composable(route = "schedule") {
-                ScheduleMeeting(navController, innerpadding = paddingValues)
+                ScheduleMeeting(navController)
             }
             composable(route="editProfile"){
-                Profile(navController, innerpadding = paddingValues)
+                Profile(navController)
             }
             composable(route="notification_screen"){
-                NotificationScreen( navController, innerpadding = paddingValues)
+                NotificationScreen( navController)
             }
             composable(route="start_meeting") {
                 JitsiMeetCompose(navController, innerpadding = paddingValues)
             }
             composable("pdf_reports") {
                 PdfReportsScreen(navController, innerpadding = paddingValues)
+            }
+            composable("upload_video_screen") {
+                UploadVideoScreen(navController)
+            }
+            composable("video_result_screen") {
+                VideoResultScreen()
             }
 
         }

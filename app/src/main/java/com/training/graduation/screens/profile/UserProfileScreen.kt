@@ -76,7 +76,6 @@ import java.util.Locale
 
 @Composable
 fun UserProfileScreen(navController: NavController,preferenceManager: PreferenceManager){
-    BottomNavigationBar(navController = navController)
 
     val layoutDirection = LocalLayoutDirection.current
     val authViewModel: AuthViewModel = viewModel()

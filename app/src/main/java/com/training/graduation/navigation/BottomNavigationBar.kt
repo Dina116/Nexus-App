@@ -1,7 +1,11 @@
 package com.training.graduation.navigation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -38,142 +42,112 @@ fun BottomNavigationBarPreview() {
 }
 @Composable
 fun BottomNavigationBar(navController: NavController) {
+    val currentRoute = navController.currentDestination?.route
 
-//        Surface(
-//            shape = RoundedCornerShape(25.dp),
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(20.dp)
-//                .height(95.dp)
-//                .padding(bottom = 20.dp)
-//                .fillMaxWidth(),
-//            color = Color.White,
-//            shadowElevation = 4.dp
-//        )
     Surface(
         shape = RoundedCornerShape(25.dp),
         modifier = Modifier
-            .fillMaxWidth() // يضمن أن يملأ العرض المتاح
-            .height(95.dp) // الارتفاع الكلي لشريط التنقل
-            .padding(horizontal = 20.dp, vertical =20.dp), // padding داخلي لشريط التنقل نفسه
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 20.dp)
+            .height(100.dp), // قلل الارتفاع لو كان كبير
         color = Color.White,
-        shadowElevation = 4.dp,
-
-    )
-        {
-            NavigationBar(
-                modifier = Modifier.background(
-                    brush = Brush.linearGradient(
-                        colors = listOf(Color.Black, Color(0xFF3533CD)),
-                        start = Offset(0f, 0f),
-                        end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 10.dp), // padding داخلي لضبط المحاذاة
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.linearGradient(
+                            colors = listOf(Color.Black, Color(0xFF3533CD)),
+                            start = Offset(0f, 0f),
+                            end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+                        ),
+                        shape = RoundedCornerShape(25.dp)
                     )
-                ),
-                containerColor = Color.Transparent,
-                contentColor = Color.White,
-
-
+                    .padding(vertical = 10.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                BottomNavItem(
+                    iconRes = R.drawable.home_icon,
+                    label = stringResource(R.string.home),
+                    isSelected = currentRoute == "homescreen"
                 ) {
-                val currentRoute = navController.currentDestination?.route
-
-                NavigationBarItem(
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.home_icon),
-                            contentDescription = "Home",
-                            tint = if (currentRoute == "homescreen") Color.White else Color.White,
-                            modifier = Modifier
-                                .wrapContentSize(Alignment.Center)
-                                .size(25.dp)
-                        )
-                    },
-                    label = {
-                        if (currentRoute == "homescreen") {
-                            Text(
-                                text = stringResource(R.string.home),
-                                color = Color.White
-                            )
-                        }
-                    },
-                    selected = currentRoute == "homescreen",
-                    onClick = {
-                        navController.navigate("homescreen") {
-//                            popUpTo(0) { inclusive = true }
-                            popUpTo(navController.graph.startDestinationId) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
+                    navController.navigate("homescreen") {
+                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
                     }
-                )
+                }
 
-                NavigationBarItem(
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.group_icon),
-                            contentDescription = "Group",
-                            tint = if (currentRoute == "group") Color.White else Color.White,
-                            modifier = Modifier
-                                .wrapContentSize(Alignment.Center)
-                                .size(25.dp)
-                        )
-                    },
-                    label = {
-                        if (currentRoute == "group") {
-                            Text(
-                                text = stringResource(R.string.group),
-                                color = Color.White
-                            )
-                        }
-                    },
-                    selected = currentRoute == "group",
-                    onClick = {
-                        navController.navigate("group") {
-//                            popUpTo(0) { inclusive = true }
-//                            navController.popBackStack()
-                            popUpTo(navController.graph.startDestinationId) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
+                BottomNavItem(
+                    iconRes = R.drawable.group_icon,
+                    label = stringResource(R.string.group),
+                    isSelected = currentRoute == "group"
+                ) {
+                    navController.navigate("group") {
+                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
                     }
-                )
+                }
 
-                NavigationBarItem(
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.profile_icon),
-                            contentDescription = "User Profile",
-                            tint = if (currentRoute == "userprofile") Color.White else Color.White,
-                            modifier = Modifier
-                                .wrapContentSize(Alignment.Center)
-                                .size(25.dp)
-                        )
-                    },
-                    label = {
-                        if (currentRoute == "userprofile") {
-                            Text(
-                                text = stringResource(R.string.profile),
-                                color = Color.White
-                            )
-                        }
-                    },
-                    selected = currentRoute == "userprofile",
-                    onClick = {
-                        navController.navigate("userprofile") {
-//                            navController.popBackStack()
-                            popUpTo(navController.graph.startDestinationId) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-
-
+                BottomNavItem(
+                    iconRes = R.drawable.profile_icon,
+                    label = stringResource(R.string.profile),
+                    isSelected = currentRoute == "userprofile"
+                ) {
+                    navController.navigate("userprofile") {
+                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
                     }
-                )
+                }
             }
         }
-
-
-
+    }
 }
+
+@Composable
+fun BottomNavItem(
+    iconRes: Int,
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable(onClick = onClick)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(36.dp) // حجم الخلفية
+                .background(
+                    color = if (isSelected) Color.White else Color.Transparent,
+                    shape = RoundedCornerShape(10.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(id = iconRes),
+                contentDescription = label,
+                modifier = Modifier.size(24.dp),
+                tint = if (isSelected) Color(0xFF3533CD) else Color.White
+            )
+        }
+
+        if (isSelected) {
+            Text(text = label, color = Color.White)
+        }
+    }
+}
+
+
 
 /*
 //                NavigationBarItem(

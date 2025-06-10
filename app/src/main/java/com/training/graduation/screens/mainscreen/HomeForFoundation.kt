@@ -248,7 +248,12 @@ fun HomeForFoundation(modifier: Modifier,navController:NavController,authViewMod
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun HomeForFoundationPreview() {
-    HomeScreen( navController = NavController(LocalContext.current), authViewModel = AuthViewModel(), innerpadding = PaddingValues())
+    HomeScreen(
+        navController = NavController(LocalContext.current),
+        authViewModel = AuthViewModel(),
+        innerpadding = PaddingValues(),
+        modifier = Modifier
+    )
 
 }
 
