@@ -61,6 +61,8 @@ import org.jitsi.meet.sdk.JitsiMeetUserInfo
 import java.net.URL
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,6 +84,10 @@ fun JitsiMeetCompose(navController: NavController,viewModel: PreMeetingViewModel
         contract = ActivityResultContracts.StartActivityForResult()
     ) {
         Log.d("JitsiMeet", "Meeting ended, stopping camera service")
+        val sharedPrefs = context.getSharedPreferences("MeetingPrefs", Context.MODE_PRIVATE)
+        val currentMeetingId = sharedPrefs.getString("currentMeetingId", "") ?: ""
+        val cameraManager = CameraManager.getInstance(context)
+        cameraManager.createFinalReport(currentMeetingId)
         stopCameraService(context)
     }
     val scope = rememberCoroutineScope()
@@ -192,29 +198,17 @@ fun JitsiMeetCompose(navController: NavController,viewModel: PreMeetingViewModel
                     }
 
                     if (!roomNameError && !passwordError && !userNameError) {
-                        // إنشاء ميتنج في Firebase
                         FirebaseManager.createMeeting(roomName, isCheatingDetectionEnabled) { success ->
                             if (success) {
                                 Log.d("JitsiMeetCompose", "Meeting created in Firebase")
-
-                                // بدء الـ Service
+                                startJitsiMeeting(context, roomName, password, userName, launcher)
                                 startCameraService(context, isCheatingDetectionEnabled, roomName)
-
-                                // فتح الميتنج
-                                startJitsiMeeting(context, roomName, password, userName)
                             } else {
                                 Log.e("JitsiMeetCompose", "Failed to create meeting in Firebase")
                                 Toast.makeText(context, "Failed to create meeting", Toast.LENGTH_SHORT).show()
                             }
                         }
                     }
-
-//                    if (!roomNameError && !passwordError) {
-//                        startCameraService(context, isCheatingDetectionEnabled,roomName)
-//                        val participantManager = ParticipantManager.getInstance()
-//                        participantManager.addParticipant("local-user", userName)
-//                        startJitsiMeeting(context, roomName, password, userName, launcher)
-//                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -314,6 +308,8 @@ fun JitsiMeetCompose(navController: NavController,viewModel: PreMeetingViewModel
     }
 
 }
+
+
 fun startJitsiMeeting(
     context: Context,
     roomName: String,

@@ -51,6 +51,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.training.graduation.R
 import com.training.graduation.screens.Authentication.AuthState
 import com.training.graduation.screens.Authentication.AuthViewModel
+import com.training.graduation.screens.sharedprefrence.PreferenceManager
 
 
 @Preview(showBackground = true, showSystemUi = true)
@@ -76,10 +77,16 @@ fun SignupScreen(modifier: Modifier, navController: NavController, authViewModel
 
     val authState = authViewModel.authState.observeAsState()
     val context = LocalContext.current
-
+    val currentUser by authViewModel.currentUser.observeAsState()
     LaunchedEffect(authState.value) {
         when (authState.value) {
             is AuthState.Authenticated -> {
+
+                currentUser?.let { user ->
+                    val prefs = PreferenceManager(context)
+                    prefs.saveUserId(user.id ?: "")
+                    prefs.setFirstTime(false)
+                }
                 Toast.makeText(
                     context,
                     "Register Successfully",

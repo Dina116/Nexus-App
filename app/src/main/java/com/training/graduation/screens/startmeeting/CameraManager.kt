@@ -147,8 +147,6 @@ class CameraManager private constructor (private val context: Context) {
 
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     Log.d("CameraManager", "Photo capture succeeded: ${photoFile.absolutePath}")
-
-                    //ParticipantManager.getInstance().setCurrentParticipantId(participantId)
                     sendPhotoToServer(photoFile, isCheatingDetectionEnabled)
                 }
             }
@@ -171,28 +169,27 @@ class CameraManager private constructor (private val context: Context) {
                     if (response.isSuccessful) {
                         val result = response.body()
                         Log.d("CameraManager", "Result: $result")
-                        Log.d("CameraManager", "Adding result to detectionResults")
-
-                        //val activeParticipantId = participantManager.getParticipants().keys.firstOrNull()
 
                         val activeParticipantId = participantManager.getCurrentParticipantId()
 
-                        Log.d("CameraManager", "Active participant ID: $activeParticipantId")
-                        Log.d("CameraManager", "Participant count: ${participantManager.getParticipantCount()}")
+                        val participantId = activeParticipantId ?: "local-user"
 
-                            DetectionResultManager.addResult(
-                                DetectionResult(
-                                    result = result,
-                                    photoPath = photoFile.absolutePath,
-                                    timestamp = System.currentTimeMillis(),
-                                    activeParticipantId = activeParticipantId
-                                )
+                        Log.d("CameraManager", "Active participant ID: $participantId")
+
+                        DetectionResultManager.addResult(
+                            DetectionResult(
+                                result = result,
+                                photoPath = photoFile.absolutePath,
+                                timestamp = System.currentTimeMillis(),
+                                activeParticipantId = participantId
                             )
+                        )
+
                         val sharedPrefs = context.getSharedPreferences("MeetingPrefs", Context.MODE_PRIVATE)
                         val currentMeetingId = sharedPrefs.getString("currentMeetingId", "") ?: ""
 
                         if (currentMeetingId.isNotEmpty()) {
-                            FirebaseManager.addDetectionResult(currentMeetingId, activeParticipantId.toString(), result!!) { success ->
+                            FirebaseManager.addDetectionResult(currentMeetingId, participantId, result!!) { success ->
                                 if (success) {
                                     Log.d("CameraManager", "Result uploaded to Firebase")
                                 } else {
@@ -209,7 +206,6 @@ class CameraManager private constructor (private val context: Context) {
             }
         }
     }
-
 
     private fun prepareImagePart(file: File): MultipartBody.Part {
         val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
@@ -235,9 +231,6 @@ class CameraManager private constructor (private val context: Context) {
                     Log.d("CameraManager", "No Firebase results found, using local results.")
                     createPdfFromLocalResults(meetingName, pdfFile)
                 }
-//                if (firebaseResults.isEmpty()) {
-//                    // إذا لم تكن هناك نتائج في Firebase، استخدم النتائج المحلية
-//                    createPdfFromLocalResults(meetingName, pdfFile) }
                 else {
                     Log.d("CameraManager", "Firebase results found: ${firebaseResults.size}")
                     createPdfFromFirebaseResults(meetingName, pdfFile, firebaseResults)
@@ -248,117 +241,18 @@ class CameraManager private constructor (private val context: Context) {
             Toast.makeText(context, "Failed to create report: ${e.message}", Toast.LENGTH_LONG).show()
         }}
 
-//
-//            val document = Document()
-//            PdfWriter.getInstance(document, FileOutputStream(pdfFile))
-//            document.open()
-//            document.add(Paragraph("Meeting Summary Report: $meetingName", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18f)))
-//            document.add(Paragraph("Date & Time: $timestamp"))
-//            document.add(Paragraph("Total Detections: ${detectionResults.size}"))
-//            document.add(Paragraph("\n"))
-//            if (detectionResults.isEmpty()) {
-//                document.add(Paragraph("No detection results available."))
-//            } else {
-//                val participants = participantManager.getParticipants()
-//                createParticipantSummaryTable(document, detectionResults, participants)
-//            }
-//            document.close()
-//            DetectionResultManager.clearResults()
-//            participantManager.clearParticipants()
-//            Log.d("CameraManager", "Final PDF report saved: ${pdfFile.absolutePath}")
-//            Log.d("CameraManager", "PDF directory path: ${pdfDir.absolutePath}")
-//            Log.d("CameraManager", "PDF directory exists: ${pdfDir.exists()}")
-//            openPdfReport(pdfFile)
-//
-//        } catch (e: Exception) {
-//            Log.e("CameraManager", "Failed to create final PDF: ${e.message}")
-//        }
-//    }
-
-  /*  fun createPdfFromLocalResults(meetingName: String, pdfFile: File) {
-        try {
-            Log.d("CameraManager", "Creating PDF from local results at: ${pdfFile.absolutePath}")
-
-            val document = Document()
-            PdfWriter.getInstance(document, FileOutputStream(pdfFile))
-            document.open()
-
-            val titleFont = Font(Font.FontFamily.HELVETICA, 20f, Font.BOLD)
-            val title = Paragraph("Meeting Report - $meetingName", titleFont)
-            title.alignment = Element.ALIGN_CENTER
-            document.add(title)
-            document.add(Paragraph("\n"))
-
-            val results = DetectionResultManager.getResults()
-            val participantsMap = ParticipantManager.getInstance().getParticipants()
-
-            if (results.isEmpty() && participantsMap.isEmpty()) {
-                document.add(Paragraph("No data available for this meeting."))
-            } else {
-                // بيانات المشاركين
-                val participantTitle = Paragraph("Participants", Font(Font.FontFamily.HELVETICA, 16f, Font.BOLD))
-                participantTitle.alignment = Element.ALIGN_LEFT
-                document.add(participantTitle)
-                document.add(Paragraph("\n"))
-
-                participantsMap.forEach { (participantId, displayName) ->
-                    document.add(Paragraph("Name: $displayName"))
-                    document.add(Paragraph("Participant ID: $participantId"))
-                    document.add(Paragraph("\n"))
-                }
-
-                // نتائج الكشف
-                val detectionTitle = Paragraph("Detection Results", Font(Font.FontFamily.HELVETICA, 16f, Font.BOLD))
-                detectionTitle.alignment = Element.ALIGN_LEFT
-                document.add(detectionTitle)
-                document.add(Paragraph("\n"))
-
-                val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
-
-                results.forEach { result ->
-                    val faceName = when (val r = result.result) {
-                        is String -> r
-                        else -> "Unknown Face"
-                    }
-                    val timeStr = sdf.format(Date(result.timestamp))
-                    val participantName = result.activeParticipantId?.let {
-                        ParticipantManager.getInstance().getParticipantName(it)
-                    } ?: "Unknown Participant"
-
-                    document.add(Paragraph("Face: $faceName"))
-                    document.add(Paragraph("Detected At: $timeStr"))
-                    document.add(Paragraph("Associated Participant: $participantName"))
-                    document.add(Paragraph("Photo Path: ${result.photoPath}"))
-                    document.add(Paragraph("\n"))
-                }
-            }
-
-            document.close()
-            openPdfReport(pdfFile)
-
-        } catch (e: Exception) {
-            Log.e("CameraManager", "Error creating PDF from local results: ${e.message}")
-            Toast.makeText(context, "Error creating PDF: ${e.message}", Toast.LENGTH_LONG).show()
-        }
-    }*/
 
     private fun createPdfFromLocalResults(meetingName: String, pdfFile: File) {
         val detectionResults = DetectionResultManager.getResults()
         Log.d("CameraManager", "Creating final report with ${detectionResults.size} local results")
-
-        // استخدم الكود الحالي لإنشاء PDF من النتائج المحلية
         val document = Document()
         PdfWriter.getInstance(document, FileOutputStream(pdfFile))
         document.open()
-
-        // إضافة عنوان
-        document.add(Paragraph("Meeting Report (Local): $meetingName", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18f)))
+        document.add(Paragraph("Meeting Report : $meetingName", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18f)))
         document.add(Paragraph("Date & Time: ${SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.US).format(System.currentTimeMillis())}"))
         document.add(Paragraph("Total Detections: ${detectionResults.size}"))
         document.add(Paragraph("Total Participants: ${participantManager.getParticipantCount()}"))
         document.add(Paragraph("\n"))
-
-        // استخدم الكود الحالي لإضافة النتائج إلى PDF
         if (detectionResults.isEmpty()) {
             document.add(Paragraph("No detection results available."))
         } else {
@@ -367,25 +261,16 @@ class CameraManager private constructor (private val context: Context) {
         }
 
         document.close()
-
-        // مسح النتائج بعد إنشاء التقرير
         DetectionResultManager.clearResults()
         participantManager.clearParticipants()
-
         Log.d("CameraManager", "Final PDF report saved: ${pdfFile.absolutePath}")
-
-        // فتح التقرير
         openPdfReport(pdfFile)
     }
 
      private fun createPdfFromFirebaseResults(meetingName: String, pdfFile: File, firebaseResults: List<DetectionResultData>) {
         Log.d("CameraManager", "Creating final report with ${firebaseResults.size} Firebase results")
-
-        // الحصول على المشاركين من Firebase
         FirebaseManager.getMeetingParticipants(meetingName) { participants ->
             val participantsMap = participants.associate { it.participantId to it.displayName }
-
-            // تحويل نتائج Firebase إلى نتائج محلية
             val detectionResults = firebaseResults.map { firebaseResult ->
                 val result = if (firebaseResult.resultType == "cheating") {
                     CheatingResult(
@@ -414,31 +299,21 @@ class CameraManager private constructor (private val context: Context) {
                     activeParticipantId = firebaseResult.participantId
                 )
             }
-
-            // إنشاء PDF
             val document = Document()
             PdfWriter.getInstance(document, FileOutputStream(pdfFile))
             document.open()
-
-            // إضافة عنوان
             document.add(Paragraph("Meeting Report (All Participants): $meetingName", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18f)))
             document.add(Paragraph("Date & Time: ${SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.US).format(System.currentTimeMillis())}"))
             document.add(Paragraph("Total Detections: ${detectionResults.size}"))
             document.add(Paragraph("Total Participants: ${participantsMap.size}"))
             document.add(Paragraph("\n"))
-
-            // إضافة النتائج إلى PDF
             if (detectionResults.isEmpty()) {
                 document.add(Paragraph("No detection results available."))
             } else {
                 createParticipantSummaryTable(document, detectionResults, participantsMap)
             }
-
             document.close()
-
             Log.d("CameraManager", "Final PDF report saved: ${pdfFile.absolutePath}")
-
-            // فتح التقرير
             openPdfReport(pdfFile)
         }
     }
@@ -452,14 +327,20 @@ class CameraManager private constructor (private val context: Context) {
         val columnWidths = floatArrayOf(3f, 2f, 2f, 2f, 2f, 2f, 2f, 2f)
         table.setWidths(columnWidths)
 
-        addTableCell(table, "Participant", true)
-        addTableCell(table, "Cheating/Attention %", true)
-        addTableCell(table, "Mobile Usage %", true)
-        addTableCell(table, "No Attendance (sec)", true)
-        addTableCell(table, "People Count", true)
-        addTableCell(table, "People Time (sec)", true)
-        addTableCell(table, "Sleep Time (sec)", true)
-        addTableCell(table, "Total Detections", true)
+        if(isCheatingDetectionEnabled ){
+
+        }
+        else{
+            addTableCell(table, "Participant", true)
+            addTableCell(table, "Attention %", true)
+            addTableCell(table, "Mobile Usage %", true)
+            addTableCell(table, "No Attendance (min)", true)
+            addTableCell(table, "People Count", true)
+            addTableCell(table, "People Time (min)", true)
+            addTableCell(table, "Sleep Time (min)", true)
+            addTableCell(table, "Total Detections", true)
+        }
+
         if (participants.isEmpty()) {
             addParticipantRow(table, "All Participants", allResults)
         } else {
@@ -483,7 +364,7 @@ class CameraManager private constructor (private val context: Context) {
         var totalAttentionPercentage = 0.0
         var cheatingCount = 0
         var attentionCount = 0
-        var totalMobileDetections = 0
+        var totalMobileDetections = 0.0
         var totalNoAttendanceTime = 0.0
         var totalPeopleCount = 0.toInt()
         var totalPeopleTime = 0.0
@@ -501,7 +382,7 @@ class CameraManager private constructor (private val context: Context) {
                     }
                     if (result.Mobile) totalMobileDetections++
                     totalNoAttendanceTime += result.No_attendance_time
-                    totalPeopleCount += result.People_count.toInt()
+                    totalPeopleCount += result.People_count
                     totalPeopleTime += result.People_time
                     totalSleepTime += result.Sleep_time
                 }
@@ -515,7 +396,7 @@ class CameraManager private constructor (private val context: Context) {
                     }
                     if (result.Mobile) totalMobileDetections++
                     totalNoAttendanceTime += result.No_attendance_time
-                    totalPeopleCount += result.People_count.toInt()
+                    totalPeopleCount += result.People_count
                     totalPeopleTime += result.People_time
                     totalSleepTime += result.Sleep_time
                 }
@@ -538,8 +419,9 @@ class CameraManager private constructor (private val context: Context) {
             addTableCell(table, "N/A")
         }
         if (resultCount > 0) {
-            val avgNoAttendanceTime = totalNoAttendanceTime / resultCount
-            addTableCell(table, String.format("%.2f", avgNoAttendanceTime))
+            val avgNoAttendanceTime = (totalNoAttendanceTime / resultCount)/ 60
+//            addTableCell(table, String.format("%d", avgNoAttendanceTime))
+            addTableCell(table, avgNoAttendanceTime.toInt().toString())
         } else {
             addTableCell(table, "N/A")
         }
@@ -550,14 +432,16 @@ class CameraManager private constructor (private val context: Context) {
             addTableCell(table, "N/A")
         }
         if (resultCount > 0) {
-            val avgPeopleTime = totalPeopleTime / resultCount
-            addTableCell(table, String.format("%.2f", avgPeopleTime))
+            val avgPeopleTime = (totalPeopleTime / resultCount)/60
+//            addTableCell(table, String.format("%d", avgPeopleTime))
+            addTableCell(table, avgPeopleTime.toInt().toString())
         } else {
             addTableCell(table, "N/A")
         }
         if (resultCount > 0) {
-            val avgSleepTime = totalSleepTime / resultCount
-            addTableCell(table, String.format("%.2f", avgSleepTime))
+            val avgSleepTime = (totalSleepTime / resultCount)/60
+//            addTableCell(table, String.format("%d", avgSleepTime))
+            addTableCell(table, avgSleepTime.toInt().toString())
         } else {
             addTableCell(table, "N/A")
         }
@@ -583,276 +467,31 @@ class CameraManager private constructor (private val context: Context) {
 
         return pdfDir.listFiles { file -> file.name.endsWith(".pdf") }?.toList() ?: emptyList()
     }
-    fun openPdfReport(file: File) {
-        try {
-            val uri = FileProvider.getUriForFile(
-                context,
-                "${context.packageName}.fileprovider",
-                file
-            )
+fun openPdfReport(file: File) {
+    try {
+        val uri = FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            file
+        )
 
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, "application/pdf")
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-
-            context.startActivity(intent)
-        } catch (e: Exception) {
-            Log.e("PDFViewer", "Error opening PDF: ${e.message}")
-            Toast.makeText(context, "Cannot open PDF. Please install a PDF viewer app.", Toast.LENGTH_LONG).show()
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "application/pdf")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
+
+        val chooserIntent = Intent.createChooser(intent, "Open PDF with...")
+        chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+        context.startActivity(chooserIntent)
+    } catch (e: Exception) {
+        Log.e("PDFViewer", "Error opening PDF: ${e.message}")
+        Toast.makeText(context, "Cannot open PDF. Please install a PDF viewer app.", Toast.LENGTH_LONG).show()
     }
+}
+
     fun release() {
         stopImageCaptureLoop()
         cameraProvider?.unbindAll()
     }
 }
-
-/*
-//    fun createFinalReport(meetingName: String) {
-//        try {
-//            Log.d("CameraManager", "Starting to create final report for meeting: $meetingName")
-//
-//            // الحصول على النتائج من DetectionResultManager
-//            val detectionResults = DetectionResultManager.getResults()
-//
-//            Log.d("CameraManager", "Creating final report with ${detectionResults.size} results from DetectionResultManager")
-//
-//            val pdfDir = File(context.filesDir, "pdf_reports").apply {
-//                if (!exists()) {
-//                    mkdirs()
-//                }
-//            }
-//
-//
-//            // إنشاء اسم الملف بناءً على اسم الميتنج والتاريخ
-//            val timestamp = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.US).format(System.currentTimeMillis())
-//            val pdfFile = File(pdfDir, "meeting_report_${meetingName}_${timestamp}.pdf")
-//
-//            // إنشاء الـ PDF باستخدام مكتبة iText
-//            val document = Document()
-//            PdfWriter.getInstance(document, FileOutputStream(pdfFile))
-//            document.open()
-//
-//            // إضافة عنوان
-//            document.add(Paragraph("Meeting Report: $meetingName", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18f)))
-//            document.add(Paragraph("Date & Time: $timestamp"))
-//            document.add(Paragraph("Total Detections: ${detectionResults.size}"))
-//            document.add(Paragraph("Total Participants: ${participantManager.getParticipantCount()}"))
-//            document.add(Paragraph("\n"))
-//
-//            // تجميع النتائج حسب المشاركين
-//
-//                if (detectionResults.isEmpty()) {
-//                    document.add(Paragraph("No detection results available."))
-//                } else {
-//                    // تحديد المشاركين المختلفين
-//                    val participants = participantManager.getParticipants()
-//
-//                    if (participants.isEmpty()) {
-//                        // إذا لم يتم تسجيل أي مشاركين، نستخدم تقسيم بديل
-//                        document.add(Paragraph("No participants detected. Grouping results by time periods.", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14f)))
-//
-//                        // تقسيم النتائج حسب فترات زمنية (كل 15 دقيقة)
-//                        val timeGroups = detectionResults.groupBy {
-//                            it.timestamp / (15 * 60 * 1000) // تقسيم حسب فترات 15 دقيقة
-//                        }
-//
-//                        for ((timeGroup, resultsInGroup) in timeGroups) {
-//                            val startTime = SimpleDateFormat("HH:mm", Locale.US).format(timeGroup * 15 * 60 * 1000)
-//                            val endTime = SimpleDateFormat("HH:mm", Locale.US).format((timeGroup + 1) * 15 * 60 * 1000)
-//
-//                            document.add(Paragraph("Time Period: $startTime - $endTime", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16f)))
-//                            document.add(Paragraph("{"))
-//
-//                            // إضافة النتائج لهذه الفترة الزمنية
-//                            addResultsToDocument(document, resultsInGroup)
-//
-//                            document.add(Paragraph("}"))
-//                            document.add(Paragraph("\n"))
-//                        }
-//                    } else {
-//                        // تجميع النتائج حسب المشاركين
-//                        for ((participantId, participantName) in participants) {
-//                            // تجميع النتائج لهذا المشارك
-//                            val resultsForThisParticipant = detectionResults.filter { it.activeParticipantId == participantId }
-//
-//                            if (resultsForThisParticipant.isNotEmpty()) {
-//                                document.add(Paragraph("Participant: $participantName", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16f)))
-//                                document.add(Paragraph("{"))
-//
-//                                // إضافة النتائج لهذا المشارك
-//                                addResultsToDocument(document, resultsForThisParticipant)
-//
-//                                document.add(Paragraph("}"))
-//                                document.add(Paragraph("\n"))
-//                            }
-//                        }
-//
-//                        // إضافة النتائج التي لا تنتمي لأي مشارك
-//                        val unassignedResults = detectionResults.filter { it.activeParticipantId == null }
-//                        if (unassignedResults.isNotEmpty()) {
-//                            document.add(Paragraph("Unassigned Results", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16f)))
-//                            document.add(Paragraph("{"))
-//
-//                            // إضافة النتائج غير المرتبطة بمشارك
-//                            addResultsToDocument(document, unassignedResults)
-//
-//                            document.add(Paragraph("}"))
-//                            document.add(Paragraph("\n"))
-//                        }else{}
-//                    }
-//                }
-//
-//
-//            document.close()
-//
-//            // مسح القائمة بعد إنشاء التقرير
-////            synchronized(resultsLock) {
-////                detectionResults.clear()
-////            }
-//
-//            // مسح قائمة المشاركين
-//            DetectionResultManager.clearResults()
-//            participantManager.clearParticipants()
-//
-//            Log.d("CameraManager", "Final PDF report saved: ${pdfFile.absolutePath}")
-//            Log.d("CameraManager", "PDF directory path: ${pdfDir.absolutePath}")
-//            Log.d("CameraManager", "PDF directory exists: ${pdfDir.exists()}")
-//            openPdfReport(pdfFile)
-//
-//
-//
-//        } catch (e: Exception) {
-//            Log.e("CameraManager", "Failed to create final PDF: ${e.message}")
-//        }
-//    }
-//    private fun addResultsToDocument(document: Document, results: List<DetectionResult>) {
-//        var totalCheatingPercentage = 0.0
-//        var totalAttentionPercentage = 0.0
-//        var cheatingCount = 0
-//        var attentionCount = 0
-//
-//        results.forEachIndexed { index, detectionResult ->
-//            document.add(Paragraph("Detection #${index + 1}", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14f)))
-//            document.add(Paragraph("Time: ${SimpleDateFormat("HH:mm:ss", Locale.US).format(detectionResult.timestamp)}"))
-//
-//            // إضافة الصورة
-//            try {
-//                val image = Image.getInstance(detectionResult.photoPath)
-//                image.scaleToFit(300f, 300f)
-//                document.add(image)
-//            } catch (e: Exception) {
-//                document.add(Paragraph("Image not available"))
-//            }
-//
-//            // إضافة نتائج الكشف
-//            document.add(Paragraph("Results:", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12f)))
-//
-//            when (val result = detectionResult.result) {
-//                is CheatingResult -> {
-//                    document.add(Paragraph("Mobile Detected: ${result.Mobile}"))
-//                    document.add(Paragraph("No Attendance Time: ${result.No_attendance_time} seconds"))
-//                    document.add(Paragraph("People Count: ${result.People_count}"))
-//                    document.add(Paragraph("People Time: ${result.People_time} seconds"))
-//                    document.add(Paragraph("Percentage of Cheating: ${result.Percentage_of_cheating}"))
-//                    document.add(Paragraph("Sleep Time: ${result.Sleep_time} seconds"))
-//
-//                    // تحويل النسبة من نص إلى رقم
-//                    try {
-//                        val percentage = result.Percentage_of_cheating.replace("%", "").toDouble()
-//                        totalCheatingPercentage += percentage
-//                        cheatingCount++
-//                    } catch (e: Exception) {
-//                        Log.e("CameraManager", "Error parsing cheating percentage: ${e.message}")
-//                    }
-//                }
-//                is AttentionResult -> {
-//                    document.add(Paragraph("Mobile Detected: ${result.Mobile}"))
-//                    document.add(Paragraph("No Attendance Time: ${result.No_attendance_time} seconds"))
-//                    document.add(Paragraph("People Count: ${result.People_count}"))
-//                    document.add(Paragraph("People Time: ${result.People_time} seconds"))
-//                    document.add(Paragraph("Percentage of Attention: ${result.Percentage_of_attention}"))
-//                    document.add(Paragraph("Sleep Time: ${result.Sleep_time} seconds"))
-//
-//                    // تحويل النسبة من نص إلى رقم
-//                    try {
-//                        val percentage = result.Percentage_of_attention.replace("%", "").toDouble()
-//                        totalAttentionPercentage += percentage
-//                        attentionCount++
-//                    } catch (e: Exception) {
-//                        Log.e("CameraManager", "Error parsing attention percentage: ${e.message}")
-//                    }
-//                }
-//            }
-//
-//            document.add(Paragraph("\n"))
-//        }
-//
-//        // إضافة متوسط النسب
-//        document.add(Paragraph("Summary:", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 14f)))
-//        if (cheatingCount > 0) {
-//            val avgCheating = totalCheatingPercentage / cheatingCount
-//            document.add(Paragraph("Average Cheating Percentage: ${String.format("%.2f", avgCheating)}%"))
-//        }
-//        if (attentionCount > 0) {
-//            val avgAttention = totalAttentionPercentage / attentionCount
-//            document.add(Paragraph("Average Attention Percentage: ${String.format("%.2f", avgAttention)}%"))
-//        }
-//    }*/
-
-
-/*    private fun sendPhotoToServer(photoFile: File, isCheating: Boolean) {
-        val api = RetrofitInstance.api
-        val imagePart = prepareImagePart(photoFile)
-
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                // تأكد من تحديث الـ participantId قبل الإرسال
-                val participants = participantManager.getParticipants()
-                val activeParticipantId = participantManager.getParticipants().keys.firstOrNull()?:"local-user"
-                participantManager.setCurrentParticipantId(activeParticipantId)
-
-                if (imagePart != null) {
-                    val response = if (isCheating) {
-                        api.detectCheating(imagePart)
-                    } else {
-                        api.detectFocus(imagePart)
-                    }
-
-                    if (response.isSuccessful) {
-                        val result = response.body()
-
-                        DetectionResultManager.addResult(
-                            DetectionResult(
-                                result = result,
-                                photoPath = photoFile.absolutePath,
-                                timestamp = System.currentTimeMillis(),
-                                activeParticipantId = activeParticipantId
-                            )
-                        )
-
-                        // ارفع للفايربيز
-                        val sharedPrefs = context.getSharedPreferences("MeetingPrefs", Context.MODE_PRIVATE)
-                        val currentMeetingId = sharedPrefs.getString("currentMeetingId", "") ?: ""
-
-                        if (currentMeetingId.isNotEmpty()) {
-                            FirebaseManager.addDetectionResult(currentMeetingId, activeParticipantId, result!!) { success ->
-                                if (success) {
-                                    Log.d("CameraManager", "Result uploaded to Firebase")
-                                } else {
-                                    Log.e("CameraManager", "Failed to upload result to Firebase")
-                                }
-                            }
-                        }
-                    } else {
-                        Log.e("CameraManager", "Error: ${response.code()}")
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e("CameraManager", "Exception: ${e.message}")
-            }
-        }
-    }
-*/

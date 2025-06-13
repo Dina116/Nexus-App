@@ -68,7 +68,6 @@ class MainActivity : ComponentActivity() {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION_REQUEST_CODE)
         }
     }
-
     @Deprecated("Deprecated in Java")
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -79,7 +78,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
     companion object {
         private const val CAMERA_PERMISSION_REQUEST_CODE = 100
     }
@@ -118,7 +116,16 @@ fun AppNavigation(preferenceManager:PreferenceManager,authViewModel:AuthViewMode
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val bottomNavRoutes = listOf("homescreen", "group", "userprofile")
+    val bottomNavRoutes = listOf("homescreen", "group","pdf_reports", "userprofile")
+    val isFirstTime = preferenceManager.isFirstTime()
+
+    val isLoggedIn = preferenceManager.getUserId() != null
+
+    val startDestination = when {
+        isFirstTime -> "Onboarding"
+        isLoggedIn -> "homescreen"
+        else -> "loginscreen"
+    }
 
     Scaffold(
         bottomBar = {
@@ -127,7 +134,7 @@ fun AppNavigation(preferenceManager:PreferenceManager,authViewModel:AuthViewMode
             }
         }
     ){ paddingValues ->
-        NavHost(navController = navController, startDestination = "Onboarding",modifier = Modifier.padding(paddingValues )) {
+        NavHost(navController = navController, startDestination = startDestination,modifier = Modifier.padding(paddingValues )) {
             composable(route = "Onboarding") {
                 OnboardingScreen (navController, innerpadding = paddingValues)
             }
@@ -162,7 +169,6 @@ fun AppNavigation(preferenceManager:PreferenceManager,authViewModel:AuthViewMode
                     innerpadding =paddingValues
                 )
             }
-
             composable(
                 route = "chat/{groupId}/{groupName}",
                 arguments = listOf(

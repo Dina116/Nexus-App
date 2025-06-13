@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
 import com.training.graduation.R
+import com.training.graduation.screens.sharedprefrence.PreferenceManager
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,6 +44,13 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController,auth
 
         when (authState.value) {
             is AuthState.Authenticated -> {
+
+                val user = authViewModel.currentUser.value
+                if (user != null) {
+                    val prefs = PreferenceManager(context)
+                    prefs.saveUserId(user.id ?: "")
+                    prefs.setFirstTime(false)
+                }
                 Toast.makeText(
                     context,
                     "Login successful",
@@ -50,7 +58,6 @@ fun LoginScreen(modifier: Modifier = Modifier, navController: NavController,auth
                 ).show()
                 navController.navigate("homescreen")
             }
-
             is AuthState.Error -> Toast.makeText(
                 context,
                 (authState.value as AuthState.Error).message,

@@ -34,12 +34,12 @@ import androidx.navigation.NavController
 import com.training.graduation.R
 
 
-
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun BottomNavigationBarPreview() {
     BottomNavigationBar(navController = NavController(LocalContext.current))
 }
+
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     val currentRoute = navController.currentDestination?.route
@@ -79,19 +79,40 @@ fun BottomNavigationBar(navController: NavController) {
                     isSelected = currentRoute == "homescreen"
                 ) {
                     navController.navigate("homescreen") {
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        popUpTo("homescreen") {
+                            inclusive = false
+                            saveState = true
+                        }
                         launchSingleTop = true
                         restoreState = true
                     }
                 }
-
                 BottomNavItem(
                     iconRes = R.drawable.group_icon,
                     label = stringResource(R.string.group),
                     isSelected = currentRoute == "group"
                 ) {
                     navController.navigate("group") {
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        popUpTo("homescreen") {
+                            inclusive = false
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+
+                BottomNavItem(
+                    iconRes = R.drawable.ic_menu,
+                    label = stringResource(R.string.Pdf_Reports),
+                    isSelected = currentRoute == "pdf_reports"
+
+                ) {
+                    navController.navigate("pdf_reports") {
+                        popUpTo("homescreen") {
+                            inclusive = false
+                            saveState = true
+                        }
                         launchSingleTop = true
                         restoreState = true
                     }
@@ -103,11 +124,15 @@ fun BottomNavigationBar(navController: NavController) {
                     isSelected = currentRoute == "userprofile"
                 ) {
                     navController.navigate("userprofile") {
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        popUpTo("homescreen") {
+                            inclusive = false
+                            saveState = true
+                        }
                         launchSingleTop = true
                         restoreState = true
                     }
                 }
+
             }
         }
     }
@@ -126,7 +151,7 @@ fun BottomNavItem(
     ) {
         Box(
             modifier = Modifier
-                .size(36.dp) // حجم الخلفية
+                .size(36.dp)
                 .background(
                     color = if (isSelected) Color.White else Color.Transparent,
                     shape = RoundedCornerShape(10.dp)
@@ -146,8 +171,6 @@ fun BottomNavItem(
         }
     }
 }
-
-
 
 /*
 //                NavigationBarItem(

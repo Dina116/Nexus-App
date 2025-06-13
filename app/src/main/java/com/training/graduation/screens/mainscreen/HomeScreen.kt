@@ -93,22 +93,11 @@ fun HomeScreen(modifier: Modifier,navController:NavController,authViewModel: Aut
                     },
                     modifier = Modifier.weight(1f)
                 )
-//                Icon(
-//                    painter = painterResource(id = R.drawable.ic_menu),
-//                    contentDescription = "Menu Icon",
-//                    modifier = Modifier
-//                        .size(30.dp)
-//                        .wrapContentSize(Alignment.TopEnd)
-//                        .clickable { },
-//                    tint = Color.Black
-//                )
             }
             Card(
                 onClick = {
 
                     navController.navigate("start_meeting")
-
-
                 }, modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 20.dp, end = 20.dp)

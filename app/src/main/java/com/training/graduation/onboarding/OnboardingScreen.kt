@@ -19,9 +19,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.training.graduation.screens.sharedprefrence.PreferenceManager
 import kotlinx.coroutines.launch
 
 @Composable
@@ -30,6 +32,7 @@ fun OnboardingScreen(
     navController: NavController,
     innerpadding: PaddingValues
 ) {
+    val context = LocalContext.current
     val pages = listOf(
         OnboardingModel.FirstPage, OnboardingModel.SecondPage
     )
@@ -48,11 +51,13 @@ fun OnboardingScreen(
             }
         }
     }
-
     val scope = rememberCoroutineScope()
 
     // استدعاء `onFinished` للتنقل إلى شاشة أخرى بعد انتهاء الـ Onboarding
     val onFinished: () -> Unit = {
+        val prefs = PreferenceManager(context)
+        prefs.setFirstTime(false)
+
         navController.navigate("loginscreen")
     }
 

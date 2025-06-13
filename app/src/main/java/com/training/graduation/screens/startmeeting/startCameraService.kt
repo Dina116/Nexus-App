@@ -17,6 +17,8 @@ fun startCameraService(context: Context, isCheatingDetectionEnabled: Boolean,roo
     }
 }
 fun stopCameraService(context: Context) {
+    val cameraManager = CameraManager.getInstance(context)
+    cameraManager.stopImageCaptureLoop()
     val intent = Intent(context, CameraService::class.java)
     context.stopService(intent)
 }

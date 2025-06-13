@@ -10,12 +10,23 @@ import java.util.UUID
 object FirebaseManager {
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
-
-    // إنشاء ميتنج جديد
+    private fun getCurrentUserDisplayName(uid: String, onComplete: (String?) -> Unit) {
+        db.collection("users").document(uid).get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    val displayName = document.getString("name")
+                    onComplete(displayName)
+                } else {
+                    onComplete(null)
+                }
+            }
+            .addOnFailureListener {
+                onComplete(null)
+            }
+    }
     fun createMeeting(meetingId: String, isCheatingDetectionEnabled: Boolean, callback: (Boolean) -> Unit) {
         val currentUser = auth.currentUser
         if (currentUser == null) {
-            // إنشاء مستخدم مجهول إذا لم يكن هناك مستخدم حالي
             auth.signInAnonymously()
                 .addOnSuccessListener {
                     createMeetingInternal(meetingId, isCheatingDetectionEnabled, callback)
@@ -31,57 +42,111 @@ object FirebaseManager {
 
     private fun createMeetingInternal(meetingId: String, isCheatingDetectionEnabled: Boolean, callback: (Boolean) -> Unit) {
         val currentUser = auth.currentUser ?: return
+        getCurrentUserDisplayName(currentUser.uid) { hostDisplayName ->
+            val displayName = hostDisplayName ?: "Host"
 
-        val meeting = MeetingData(
-            meetingId = meetingId,
-            hostId = currentUser.uid,
-            startTime = System.currentTimeMillis(),
-            isCheatingDetectionEnabled = isCheatingDetectionEnabled,
-            endTime = System.currentTimeMillis(),
-            participants = mutableListOf(currentUser.uid) // 👈 أضفنا المضيف كأول مشارك
-        )
+            val meeting = MeetingData(
+                meetingId = meetingId,
+                hostId = currentUser.uid,
+                startTime = System.currentTimeMillis(),
+                isCheatingDetectionEnabled = isCheatingDetectionEnabled,
+                endTime = System.currentTimeMillis(),
+                participants = mutableListOf(currentUser.uid)
+            )
 
-        val meetingRef = db.collection("meetings").document(meetingId)
+            val meetingRef = db.collection("meetings").document(meetingId)
 
-        meetingRef.get()
-            .addOnSuccessListener { document ->
-                if (document.exists()) {
-                    Log.d("FirebaseManager", "Meeting already exists: $meetingId")
-                    callback(true)
-                } else {
-                    meetingRef.set(meeting)
-                        .addOnSuccessListener {
-                            Log.d("FirebaseManager", "Meeting created: $meetingId")
-
-                            // 👇 إنشاء وثيقة المشارك للمضيف
-                            val participant = ParticipantData(
-                                participantId = currentUser.uid,
-                                displayName = "Host", // أو الاسم الحقيقي لو عندك
-                                meetingId = meetingId,
-                                joinTime = System.currentTimeMillis()
-                            )
-                            db.collection("participants")
-                                .document("$meetingId-${currentUser.uid}")
-                                .set(participant)
-                                .addOnSuccessListener {
-                                    callback(true)
-                                }
-                                .addOnFailureListener {
-                                    Log.e("FirebaseManager", "Failed to add host as participant: ${it.message}")
-                                    callback(false)
-                                }
-                        }
-                        .addOnFailureListener {
-                            Log.e("FirebaseManager", "Failed to create meeting: ${it.message}")
-                            callback(false)
-                        }
+            meetingRef.get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
+                        Log.d("FirebaseManager", "Meeting already exists: $meetingId")
+                        callback(true)
+                    } else {
+                        meetingRef.set(meeting)
+                            .addOnSuccessListener {
+                                Log.d("FirebaseManager", "Meeting created: $meetingId")
+                                val participant = ParticipantData(
+                                    participantId = currentUser.uid,
+                                    displayName = displayName,
+                                    meetingId = meetingId,
+                                    joinTime = System.currentTimeMillis()
+                                )
+                                db.collection("participants")
+                                    .document("$meetingId-${currentUser.uid}")
+                                    .set(participant)
+                                    .addOnSuccessListener {
+                                        callback(true)
+                                    }
+                                    .addOnFailureListener {
+                                        Log.e("FirebaseManager", "Failed to add host as participant: ${it.message}")
+                                        callback(false)
+                                    }
+                            }
+                            .addOnFailureListener {
+                                Log.e("FirebaseManager", "Failed to create meeting: ${it.message}")
+                                callback(false)
+                            }
+                    }
                 }
-            }
-            .addOnFailureListener {
-                Log.e("FirebaseManager", "Error checking if meeting exists: ${it.message}")
-                callback(false)
-            }
+                .addOnFailureListener {
+                    Log.e("FirebaseManager", "Error checking if meeting exists: ${it.message}")
+                    callback(false)
+                }
+        }
     }
+//    private fun createMeetingInternal(meetingId: String, isCheatingDetectionEnabled: Boolean, callback: (Boolean) -> Unit) {
+//        val currentUser = auth.currentUser ?: return
+//
+//        val meeting = MeetingData(
+//            meetingId = meetingId,
+//            hostId = currentUser.uid,
+//            startTime = System.currentTimeMillis(),
+//            isCheatingDetectionEnabled = isCheatingDetectionEnabled,
+//            endTime = System.currentTimeMillis(),
+//            participants = mutableListOf(currentUser.uid)
+//        )
+//
+//        val meetingRef = db.collection("meetings").document(meetingId)
+//
+//        meetingRef.get()
+//            .addOnSuccessListener { document ->
+//                if (document.exists()) {
+//                    Log.d("FirebaseManager", "Meeting already exists: $meetingId")
+//                    callback(true)
+//                } else {
+//                    meetingRef.set(meeting)
+//                        .addOnSuccessListener {
+//                            Log.d("FirebaseManager", "Meeting created: $meetingId")
+//
+//                            // 👇 إنشاء وثيقة المشارك للمضيف
+//                            val participant = ParticipantData(
+//                                participantId = currentUser.uid,
+//                                displayName = "Host",
+//                                meetingId = meetingId,
+//                                joinTime = System.currentTimeMillis()
+//                            )
+//                            db.collection("participants")
+//                                .document("$meetingId-${currentUser.uid}")
+//                                .set(participant)
+//                                .addOnSuccessListener {
+//                                    callback(true)
+//                                }
+//                                .addOnFailureListener {
+//                                    Log.e("FirebaseManager", "Failed to add host as participant: ${it.message}")
+//                                    callback(false)
+//                                }
+//                        }
+//                        .addOnFailureListener {
+//                            Log.e("FirebaseManager", "Failed to create meeting: ${it.message}")
+//                            callback(false)
+//                        }
+//                }
+//            }
+//            .addOnFailureListener {
+//                Log.e("FirebaseManager", "Error checking if meeting exists: ${it.message}")
+//                callback(false)
+//            }
+//    }
 
 
 
@@ -111,94 +176,122 @@ object FirebaseManager {
 //    }
 
     // إضافة مشارك إلى ميتنج
-    fun addParticipant(meetingId: String, participantId: String, displayName: String, callback: (Boolean) -> Unit) {
-        val currentUser = auth.currentUser
+//    fun addParticipant(meetingId: String, participantId: String, displayName: String, callback: (Boolean) -> Unit) {
+//
+//        //val currentUser = auth.currentUser
+//        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: "local-user"
+//        if ( uid == null) {
+//            auth.signInAnonymously()
+//                .addOnSuccessListener {
+//                    addParticipantInternal(meetingId, participantId, displayName, callback)
+//                }
+//                .addOnFailureListener {
+//                    Log.e("FirebaseManager", "Failed to sign in anonymously: ${it.message}")
+//                    callback(false)
+//                }
+//        } else {
+//            addParticipantInternal(meetingId, participantId, displayName, callback)
+//        }
+//    }
+    fun addParticipant(meetingId: String, displayName: String, callback: (Boolean) -> Unit) {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+
         if (currentUser == null) {
-            auth.signInAnonymously()
-                .addOnSuccessListener {
-                    addParticipantInternal(meetingId, participantId, displayName, callback)
+            // تسجيل دخول مجهول
+            FirebaseAuth.getInstance().signInAnonymously()
+                .addOnSuccessListener { authResult ->
+                    val uid = authResult.user?.uid
+                    if (uid != null) {
+                        addParticipantInternal(meetingId, uid, displayName, callback)
+                    } else {
+                        Log.e("FirebaseManager", "Anonymous user uid is null")
+                        callback(false)
+                    }
                 }
                 .addOnFailureListener {
                     Log.e("FirebaseManager", "Failed to sign in anonymously: ${it.message}")
                     callback(false)
                 }
         } else {
-            addParticipantInternal(meetingId, participantId, displayName, callback)
+            val uid = currentUser.uid
+            addParticipantInternal(meetingId, uid, displayName, callback)
         }
     }
+private fun addParticipantInternal(
+    meetingId: String,
+    participantId: String,
+    displayName: String,
+    callback: (Boolean) -> Unit
+) {
+    if (meetingId.isEmpty()) {
+        Log.e("FirebaseManager", "Invalid meetingId: cannot be empty")
+        callback(false)
+        return
+    }
 
-    private fun addParticipantInternal(meetingId: String, participantId: String, displayName: String, callback: (Boolean) -> Unit) {
-        if (meetingId.isEmpty()) {
-            Log.e("FirebaseManager", "Invalid meetingId: cannot be empty")
-            callback(false)
-            return
+    val meetingRef = db.collection("meetings").document(meetingId)
+
+    meetingRef.get().addOnSuccessListener { document ->
+        if (document.exists()) {
+            meetingRef.update("participants", FieldValue.arrayUnion(participantId))
+                .addOnSuccessListener {
+                    saveParticipantData(meetingId, participantId, displayName, callback)
+                }
+                .addOnFailureListener {
+                    Log.e("FirebaseManager", "Failed to update meeting: ${it.message}")
+                    callback(false)
+                }
+        } else {
+            val data = hashMapOf(
+                "participants" to arrayListOf(participantId),
+                "hostId" to participantId,
+                "meetingId" to meetingId,
+                "startTime" to System.currentTimeMillis(),
+                "cheatingDetectionEnabled" to false
+            )
+            meetingRef.set(data)
+                .addOnSuccessListener {
+                    saveParticipantData(meetingId, participantId, displayName, callback)
+                }
+                .addOnFailureListener {
+                    Log.e("FirebaseManager", "Failed to create meeting: ${it.message}")
+                    callback(false)
+                }
         }
+    }.addOnFailureListener {
+        Log.e("FirebaseManager", "Failed to fetch meeting: ${it.message}")
+        callback(false)
+    }
+}
 
-        // إضافة المشارك إلى قائمة المشاركين في الميتنج
-        db.collection("meetings")
-            .document(meetingId)
-            .update("participants", FieldValue.arrayUnion(participantId))
+    private fun saveParticipantData(
+        meetingId: String,
+        participantId: String,
+        displayName: String,
+        callback: (Boolean) -> Unit
+    ) {
+        val participant = ParticipantData(
+            participantId = participantId,
+            displayName = displayName,
+            meetingId = meetingId,
+            joinTime = System.currentTimeMillis(),
+            leaveTime = System.currentTimeMillis()
+        )
+
+        db.collection("participants")
+            .document("$meetingId-$participantId")
+            .set(participant)
             .addOnSuccessListener {
-                // إنشاء وثيقة المشارك
-                val participant = ParticipantData(
-                    participantId = participantId,
-                    displayName = displayName,
-                    meetingId = meetingId,
-                    joinTime = System.currentTimeMillis(),
-                    leaveTime = System.currentTimeMillis()
-                )
-
-                db.collection("participants")
-                    .document("$meetingId-$participantId")
-                    .set(participant)
-                    .addOnSuccessListener {
-                        Log.d("FirebaseManager", "Participant added: $participantId to meeting: $meetingId")
-                        callback(true)
-                    }
-                    .addOnFailureListener {
-                        Log.e("FirebaseManager", "Failed to add participant: ${it.message}")
-                        callback(false)
-                    }
+                Log.d("FirebaseManager", "Participant added: $participantId to meeting: $meetingId")
+                callback(true)
             }
             .addOnFailureListener {
-                Log.e("FirebaseManager", "Failed to update meeting: ${it.message}")
+                Log.e("FirebaseManager", "Failed to add participant: ${it.message}")
                 callback(false)
             }
     }
 
-//    private fun addParticipantInternal(meetingId: String, participantId: String, displayName: String, callback: (Boolean) -> Unit) {
-//        // إضافة المشارك إلى قائمة المشاركين في الميتنج
-//        db.collection("meetings")
-//            .document(meetingId)
-//            .update("participants", FieldValue.arrayUnion(participantId))
-//            .addOnSuccessListener {
-//                // إنشاء وثيقة المشارك
-//                val participant = ParticipantData(
-//                    participantId = participantId,
-//                    displayName = displayName,
-//                    meetingId = meetingId,
-//                    joinTime = System.currentTimeMillis()
-//                )
-//
-//                db.collection("participants")
-//                    .document("$meetingId-$participantId")
-//                    .set(participant)
-//                    .addOnSuccessListener {
-//                        Log.d("FirebaseManager", "Participant added: $participantId to meeting: $meetingId")
-//                        callback(true)
-//                    }
-//                    .addOnFailureListener {
-//                        Log.e("FirebaseManager", "Failed to add participant: ${it.message}")
-//                        callback(false)
-//                    }
-//            }
-//            .addOnFailureListener {
-//                Log.e("FirebaseManager", "Failed to update meeting: ${it.message}")
-//                callback(false)
-//            }
-//    }
 
-    // إزالة مشارك من ميتنج
     fun removeParticipant(meetingId: String, participantId: String, callback: (Boolean) -> Unit) {
         // تحديث وقت مغادرة المشارك
         db.collection("participants")
@@ -244,27 +337,9 @@ object FirebaseManager {
             }
     }
 
-
-////    // إنهاء ميتنج
-//    fun endMeeting(meetingId: String, callback: (Boolean) -> Unit) {
-//        db.collection("meetings")
-//            .document(meetingId)
-//            .update("endTime", System.currentTimeMillis())
-//            .addOnSuccessListener {
-//                Log.d("FirebaseManager", "Meeting ended: $meetingId")
-//                callback(true)
-//            }
-//            .addOnFailureListener {
-//                Log.e("FirebaseManager", "Failed to end meeting: ${it.message}")
-//                callback(false)
-//            }
-//    }
-
-    // إضافة نتيجة تحليل
     fun addDetectionResult(meetingId: String, participantId: String, result: Any, callback: (Boolean) -> Unit) {
         val resultId = UUID.randomUUID().toString()
         val timestamp = System.currentTimeMillis()
-
         val resultData = when (result) {
             is CheatingResult -> {
                 DetectionResultData(
@@ -318,8 +393,6 @@ object FirebaseManager {
             callback(false)
         }
     }
-
-    // الحصول على جميع نتائج ميتنج
     fun getMeetingResults(meetingId: String, callback: (List<DetectionResultData>) -> Unit) {
         db.collection("results")
             .whereEqualTo("meetingId", meetingId)
@@ -334,8 +407,6 @@ object FirebaseManager {
                 callback(emptyList())
             }
     }
-
-    // الحصول على جميع مشاركي ميتنج
     fun getMeetingParticipants(meetingId: String, callback: (List<ParticipantData>) -> Unit) {
         db.collection("participants")
             .whereEqualTo("meetingId", meetingId)

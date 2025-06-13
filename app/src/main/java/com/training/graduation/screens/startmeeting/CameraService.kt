@@ -17,6 +17,7 @@ class CameraService : Service() {
     private val localBinder = LocalBinder()
     private var isCheatingDetectionEnabled = false
     private var meetingName = "meeting"
+    private var userName = "user"
 
     inner class LocalBinder : Binder() {
         fun getService(): CameraService = this@CameraService
@@ -32,6 +33,8 @@ class CameraService : Service() {
             cameraManager.setCheatingDetectionEnabled(isCheatingDetectionEnabled)
 
             meetingName = it.getStringExtra("meetingName") ?: "meeting"
+            userName = it.getStringExtra("userName") ?: "user"
+
             Log.d("CameraService", "Meeting name set to: $meetingName")
         }
         val notification = createNotification()
@@ -48,6 +51,7 @@ class CameraService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        cameraManager.stopImageCaptureLoop()
         cameraManager.createFinalReport(meetingName)
         cameraManager.release()
     }
