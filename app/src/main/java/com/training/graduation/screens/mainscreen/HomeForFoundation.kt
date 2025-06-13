@@ -77,6 +77,14 @@ fun HomeForFoundation(modifier: Modifier,navController:NavController,authViewMod
 
                 ) {
 
+                SearchBar(
+                    onSearch = { query ->
+                        println("Search query: $query")
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.height(100.dp))
+
                 val icon = painterResource(id = R.drawable.notification)
 
                 IconButton(
@@ -90,14 +98,7 @@ fun HomeForFoundation(modifier: Modifier,navController:NavController,authViewMod
                         modifier = Modifier.size(24.dp),
                     )
                 }
-                Spacer(modifier = Modifier.height(100.dp))
 
-                SearchBar(
-                    onSearch = { query ->
-                        println("Search query: $query")
-                    },
-                    modifier = Modifier.weight(1f)
-                )
             }
             Card(onClick = {
 
@@ -173,7 +174,7 @@ fun HomeForFoundation(modifier: Modifier,navController:NavController,authViewMod
                         .padding(start = 10.dp)
                         .height(120.dp),
                     shape = RoundedCornerShape(30.dp),
-                    colors = CardDefaults.cardColors(Color(0xfcf6bd).copy(alpha = 0.8f))
+                    colors = CardDefaults.cardColors( Color(0xFFf1c0e8))
                 ) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
