@@ -193,7 +193,7 @@ fun HomeScreen(modifier: Modifier,navController:NavController,authViewModel: Aut
                             Spacer(Modifier.padding(top = 5.dp))
                             //Text("AI Asset", fontWeight = FontWeight.Bold)
                             Text(
-                                stringResource(R.string.aiassist),
+                                stringResource(R.string.ai_assist),
                                 fontWeight = FontWeight.SemiBold
                             )
                         }

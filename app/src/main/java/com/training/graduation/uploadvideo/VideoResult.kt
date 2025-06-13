@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Environment
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -162,6 +163,9 @@ fun DownloadedFilesList(files: List<File>) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(text = file.name, style = MaterialTheme.typography.bodyLarge)
+                    Button(onClick = { openFile(context, file) }) {
+                        Text("Open")
+                    }
                 }
             }
         }
