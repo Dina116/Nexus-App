@@ -225,7 +225,7 @@ fun HomeForFoundation(modifier: Modifier,navController:NavController,authViewMod
                             )
                             Spacer(Modifier.padding(top = 5.dp))
                             Text(
-                                stringResource(R.string.comming_soon),
+                                stringResource(R.string.aiassist),
                                 fontWeight = FontWeight.SemiBold
                             )
                         }

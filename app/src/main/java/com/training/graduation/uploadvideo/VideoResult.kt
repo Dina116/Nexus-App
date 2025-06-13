@@ -162,12 +162,6 @@ fun DownloadedFilesList(files: List<File>) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(text = file.name, style = MaterialTheme.typography.bodyLarge)
-
-                    Button(onClick = {
-                        openFile(context, file)
-                    }) {
-                        Text("Open")
-                    }
                 }
             }
         }

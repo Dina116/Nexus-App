@@ -193,7 +193,7 @@ fun HomeScreen(modifier: Modifier,navController:NavController,authViewModel: Aut
                             Spacer(Modifier.padding(top = 5.dp))
                             //Text("AI Asset", fontWeight = FontWeight.Bold)
                             Text(
-                                stringResource(R.string.comming_soon),
+                                stringResource(R.string.aiassist),
                                 fontWeight = FontWeight.SemiBold
                             )
                         }
@@ -207,14 +207,14 @@ fun HomeScreen(modifier: Modifier,navController:NavController,authViewModel: Aut
 
             Card(
                 onClick = {
-                    navController.navigate("question_form") // غيري الاسم حسب الشاشة
+                    navController.navigate("question_form")
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 20.dp, end = 20.dp)
                     .height(120.dp),
                 shape = RoundedCornerShape(30.dp),
-                colors = CardDefaults.cardColors(Color(0xFFD1C4E9)) // بنفسجي فاتح
+                colors = CardDefaults.cardColors(Color(0xfcf6bd).copy(alpha = 0.8f))
             ) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
