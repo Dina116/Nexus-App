@@ -328,12 +328,19 @@ class CameraManager private constructor (private val context: Context) {
         table.setWidths(columnWidths)
 
         if(isCheatingDetectionEnabled ){
-
+            addTableCell(table, "Participant", true)
+            addTableCell(table, "Cheating%", true)
+            addTableCell(table, "Mobile Usage ", true)
+            addTableCell(table, "No Attendance (min)", true)
+            addTableCell(table, "People Count", true)
+            addTableCell(table, "People Time (min)", true)
+            addTableCell(table, "Sleep Time (min)", true)
+            addTableCell(table, "Total Detections", true)
         }
         else{
             addTableCell(table, "Participant", true)
             addTableCell(table, "Attention %", true)
-            addTableCell(table, "Mobile Usage %", true)
+            addTableCell(table, "Mobile Usage ", true)
             addTableCell(table, "No Attendance (min)", true)
             addTableCell(table, "People Count", true)
             addTableCell(table, "People Time (min)", true)
@@ -413,13 +420,15 @@ class CameraManager private constructor (private val context: Context) {
             addTableCell(table, "N/A")
         }
         if (resultCount > 0) {
-            val mobilePercentage = (totalMobileDetections.toDouble() / resultCount) * 100
-            addTableCell(table, "${String.format("%.2f", mobilePercentage)}%")
+            val mobileUsed = totalMobileDetections > 0
+            addTableCell(table, mobileUsed.toString())
+//            val mobilePercentage = (totalMobileDetections.toDouble() / resultCount) * 100
+//            addTableCell(table, "${String.format("%.2f", mobilePercentage)}%")
         } else {
             addTableCell(table, "N/A")
         }
         if (resultCount > 0) {
-            val avgNoAttendanceTime = (totalNoAttendanceTime / resultCount)/ 60
+            val avgNoAttendanceTime = (totalNoAttendanceTime / resultCount)/1000/ 60
 //            addTableCell(table, String.format("%d", avgNoAttendanceTime))
             addTableCell(table, avgNoAttendanceTime.toInt().toString())
         } else {
@@ -432,14 +441,14 @@ class CameraManager private constructor (private val context: Context) {
             addTableCell(table, "N/A")
         }
         if (resultCount > 0) {
-            val avgPeopleTime = (totalPeopleTime / resultCount)/60
+            val avgPeopleTime = (totalPeopleTime / resultCount) / 1000 / 60
 //            addTableCell(table, String.format("%d", avgPeopleTime))
             addTableCell(table, avgPeopleTime.toInt().toString())
         } else {
             addTableCell(table, "N/A")
         }
         if (resultCount > 0) {
-            val avgSleepTime = (totalSleepTime / resultCount)/60
+            val avgSleepTime = (totalSleepTime / resultCount)/1000/60
 //            addTableCell(table, String.format("%d", avgSleepTime))
             addTableCell(table, avgSleepTime.toInt().toString())
         } else {
@@ -482,10 +491,10 @@ fun openPdfReport(file: File) {
 
         val chooserIntent = Intent.createChooser(intent, "Open PDF with...")
         chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-
         context.startActivity(chooserIntent)
     } catch (e: Exception) {
         Log.e("PDFViewer", "Error opening PDF: ${e.message}")
+        Log.d("PDFReport", "File saved at: ${file.absolutePath}")
         Toast.makeText(context, "Cannot open PDF. Please install a PDF viewer app.", Toast.LENGTH_LONG).show()
     }
 }

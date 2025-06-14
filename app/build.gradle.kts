@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.firebase.common.ktx)
     implementation(libs.firebase.storage.ktx)
+    implementation(libs.androidx.ui.test.android)
     //implementation(libs.androidx.navigationevent.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

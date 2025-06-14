@@ -52,6 +52,7 @@ runtimeLivedata = "1.7.7"
 firebaseCommonKtx = "21.0.0"
 firebaseStorageKtx = "21.0.1"
 navigationeventAndroid = "1.0.0-alpha02"
+uiTestAndroid = "1.8.2"
 
 [libraries]
 activity-compose = { module = "androidx.activity:activity-compose" }
@@ -127,6 +128,7 @@ androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtim
 firebase-common-ktx = { group = "com.google.firebase", name = "firebase-common-ktx", version.ref = "firebaseCommonKtx" }
 firebase-storage-ktx = { group = "com.google.firebase", name = "firebase-storage-ktx", version.ref = "firebaseStorageKtx" }
 androidx-navigationevent-android = { group = "androidx.navigationevent", name = "navigationevent-android", version.ref = "navigationeventAndroid" }
+androidx-ui-test-android = { group = "androidx.compose.ui", name = "ui-test-android", version.ref = "uiTestAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

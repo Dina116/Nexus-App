@@ -3,6 +3,8 @@ package com.training.graduation.screens.startmeeting
 
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -62,6 +64,8 @@ import java.net.URL
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import org.jitsi.meet.sdk.BroadcastReceiver
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -90,6 +94,32 @@ fun JitsiMeetCompose(navController: NavController,viewModel: PreMeetingViewModel
         cameraManager.createFinalReport(currentMeetingId)
         stopCameraService(context)
     }
+    val linkReceiver = remember {
+        object : BroadcastReceiver(context) {
+            override fun onReceive(context: Context, intent: Intent) {
+                if (intent.action == "org.jitsi.meet.URL_CLICKED") {
+                    val url = intent.getStringExtra("url") ?: return
+
+                    if (url.contains("exam") || url.contains("quiz") || url.contains("test")) {
+                        openExamLink(context, url)
+                    } else {
+                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        context.startActivity(browserIntent)
+                    }
+                }
+            }
+        }
+    }
+
+    DisposableEffect(Unit) {
+        val filter = IntentFilter("org.jitsi.meet.URL_CLICKED")
+        LocalBroadcastManager.getInstance(context).registerReceiver(linkReceiver, filter)
+
+        onDispose {
+            LocalBroadcastManager.getInstance(context).unregisterReceiver(linkReceiver)
+        }
+    }
+
     val scope = rememberCoroutineScope()
     Scaffold(
         topBar = {
@@ -281,35 +311,16 @@ fun JitsiMeetCompose(navController: NavController,viewModel: PreMeetingViewModel
             ) {
                 Text(stringResource(R.string.send_invitation))
             }
-//            Spacer(modifier = Modifier.height(16.dp))
-//            Button(
-//                onClick = {
-//                    navController.navigate("pdf_reports")
-//                },
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .background(
-//                        brush = Brush.linearGradient(
-//                            colors = listOf(Color(0xFF000000), Color(0xFF3533CD)),
-//                            start = Offset(0f, 0f),
-//                            end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
-//                        ),
-//                        shape = RoundedCornerShape(30.dp)
-//                    ),
-//                colors = ButtonDefaults.buttonColors(
-//                    containerColor = Color.Transparent,
-//                    contentColor = Color.White
-//                ),
-//                shape = RoundedCornerShape(30.dp)
-//            ) {
-//                Text("View PDF Reports")
-//            }
         }
     }
 
 }
-
-
+fun openExamLink(context: Context, url: String) {
+    val intent = Intent(context, ExamWebViewActivity::class.java).apply {
+        putExtra("examUrl", url)
+    }
+    context.startActivity(intent)
+}
 fun startJitsiMeeting(
     context: Context,
     roomName: String,
@@ -337,6 +348,7 @@ fun startJitsiMeeting(
             .setFeatureFlag("screen-sharing.enabled", true)
             .setFeatureFlag("recording.enabled", true)
             .setFeatureFlag("live-streaming.enabled", true)
+            .setFeatureFlag("chat.url.handler.enabled", true)
             .build()
 
         if (launcher != null) {
