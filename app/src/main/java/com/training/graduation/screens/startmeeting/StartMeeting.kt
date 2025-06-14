@@ -281,29 +281,29 @@ fun JitsiMeetCompose(navController: NavController,viewModel: PreMeetingViewModel
             ) {
                 Text(stringResource(R.string.send_invitation))
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = {
-                    navController.navigate("pdf_reports")
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(Color(0xFF000000), Color(0xFF3533CD)),
-                            start = Offset(0f, 0f),
-                            end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
-                        ),
-                        shape = RoundedCornerShape(30.dp)
-                    ),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = Color.White
-                ),
-                shape = RoundedCornerShape(30.dp)
-            ) {
-                Text("View PDF Reports")
-            }
+//            Spacer(modifier = Modifier.height(16.dp))
+//            Button(
+//                onClick = {
+//                    navController.navigate("pdf_reports")
+//                },
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .background(
+//                        brush = Brush.linearGradient(
+//                            colors = listOf(Color(0xFF000000), Color(0xFF3533CD)),
+//                            start = Offset(0f, 0f),
+//                            end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+//                        ),
+//                        shape = RoundedCornerShape(30.dp)
+//                    ),
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = Color.Transparent,
+//                    contentColor = Color.White
+//                ),
+//                shape = RoundedCornerShape(30.dp)
+//            ) {
+//                Text("View PDF Reports")
+//            }
         }
     }
 
