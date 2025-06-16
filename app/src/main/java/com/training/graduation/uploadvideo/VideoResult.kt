@@ -2,6 +2,9 @@ package com.training.graduation.uploadvideo
 
 import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.Build
 import android.os.Environment
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -34,6 +37,16 @@ fun VideoResultScreen() {
 
     val downloadedFiles = remember { mutableStateListOf<File>() }
 
+    val isOnline = remember { mutableStateOf(true) }
+
+    // التحقق من الإنترنت عند فتح الشاشة
+    LaunchedEffect(Unit) {
+        isOnline.value = isInternetAvailable(context)
+        if (!isOnline.value) {
+            Toast.makeText(context, "لا يوجد اتصال بالإنترنت حاليًا", Toast.LENGTH_LONG).show()
+        }
+    }
+
     fun handleDownload(fileName: String) {
         val file = downloadAssetFile(context, fileName)
         file?.let {
@@ -50,6 +63,7 @@ fun VideoResultScreen() {
         contentAlignment = Alignment.TopCenter
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
             Text("Video Uploaded Successfully", style = MaterialTheme.typography.titleLarge)
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -77,20 +91,29 @@ fun VideoResultScreen() {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Button(
-                onClick = { handleDownload(summaryFileName) },
-                modifier = Modifier.fillMaxWidth(0.8f)
-            ) {
-                Text("Download Summary")
-            }
+            if (isOnline.value) {
+                Button(
+                    onClick = { handleDownload(summaryFileName) },
+                    modifier = Modifier.fillMaxWidth(0.8f)
+                ) {
+                    Text("Download Summary")
+                }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = { handleDownload(notesFileName) },
-                modifier = Modifier.fillMaxWidth(0.8f)
-            ) {
-                Text("Download Notes")
+                Button(
+                    onClick = { handleDownload(notesFileName) },
+                    modifier = Modifier.fillMaxWidth(0.8f)
+                ) {
+                    Text("Download Notes")
+                }
+            } else {
+                Text(
+                    text = "⚠️ Files cannot be downloaded without an internet connection",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 16.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -105,7 +128,6 @@ fun downloadAssetFile(context: Context, fileName: String): File? {
         val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         val outFile = File(downloadsDir, fileName)
 
-        // Delete old file if exists
         if (outFile.exists()) {
             outFile.delete()
         }
@@ -153,7 +175,8 @@ fun DownloadedFilesList(files: List<File>) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                elevation = CardDefaults.cardElevation(6.dp)
+                elevation = CardDefaults.cardElevation(6.dp),
+                onClick = { openFile(context, file) }
             ) {
                 Row(
                     modifier = Modifier
@@ -163,11 +186,20 @@ fun DownloadedFilesList(files: List<File>) {
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(text = file.name, style = MaterialTheme.typography.bodyLarge)
-                    Button(onClick = { openFile(context, file) }) {
-                        Text("Open")
-                    }
                 }
             }
         }
+    }
+}
+
+fun isInternetAvailable(context: Context): Boolean {
+    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        val network = connectivityManager.activeNetwork ?: return false
+        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    } else {
+        val networkInfo = connectivityManager.activeNetworkInfo
+        return networkInfo != null && networkInfo.isConnected
     }
 }

@@ -43,7 +43,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.training.graduation.R
-import com.training.graduation.navigation.BottomNavigationBar
 import com.training.graduation.screens.Authentication.AuthViewModel
 
 
