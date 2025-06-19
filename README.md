@@ -55,20 +55,9 @@ Our system is designed for **educational and training institutions** like:
 
 ---
 
-## 📸 Screenshots
-
-> Add your screenshots here (e.g., login screen, home, monitoring, reports)
-
-![Login Screen](screenshots/login.png)
-![Home Screen](screenshots/home.png)
-![Monitoring](screenshots/monitoring.png)
-![Report](screenshots/report.png)
-
----
-
 ## 🎥 Demo Video
 
-[🔗 Watch the Prototype Demo](https://your-link-here.com)
+[🔗 Watch the Prototype Demo]((https://drive.google.com/file/d/18KYbXrwmqou_Kvn_Hwpo73fVlEcJFeJl/view?usp=sharing))
 
 ---
 
