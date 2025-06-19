@@ -57,7 +57,7 @@ Our system is designed for **educational and training institutions** like:
 
 ## 🎥 Demo Video
 
-[🔗 Watch the Prototype Demo]((https://drive.google.com/file/d/18KYbXrwmqou_Kvn_Hwpo73fVlEcJFeJl/view?usp=sharing))
+(https://drive.google.com/file/d/18KYbXrwmqou_Kvn_Hwpo73fVlEcJFeJl/view?usp=sharing)
 
 ---
 
